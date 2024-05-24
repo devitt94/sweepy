@@ -6,6 +6,7 @@ import random
 
 import typer
 from sweepy.assignment import (
+    assign_selections_fair,
     assign_selections_random,
     assign_selections_staggered,
     assign_selections_tiered,
@@ -28,6 +29,7 @@ class AssignmentMethod(str, Enum):
     STAGGERED = "staggered"
     TIERED = "tiered"
     RANDOM = "random"
+    FAIR = "fair"
 
 
 def get_selections(
@@ -92,6 +94,8 @@ def generate_sweepstakes(
         selection_assigner_func = assign_selections_tiered
     elif method == AssignmentMethod.RANDOM:
         selection_assigner_func = assign_selections_random
+    elif method == AssignmentMethod.FAIR:
+        selection_assigner_func = assign_selections_fair
     else:
         raise NotImplementedError(f"Assignment method {method} not implemented")
 
