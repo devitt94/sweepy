@@ -12,14 +12,10 @@ from sweepy.assignment import (
     assign_selections_tiered,
 )
 from sweepy.integrations.betfair import BetfairClient
-from sweepy.models.market import Market
 from sweepy.calculator import compute_market_probabilities
 from sweepy.models.runner import Runner
 from sweepy.models.runner_probability import RunnerProbability
 
-
-US_PRESEDENTIAL_ELECTION = "1.176878927"
-US_OPEN_GOLF_WINNER = "1.216450255"
 
 app = typer.Typer()
 dotenv.load_dotenv()
@@ -53,14 +49,7 @@ def get_selections(
             )
         )
 
-    market = Market(
-        market_id=market_id,
-        market_name="US Open Golf Winner",
-        market_status="OPEN",
-        runners=runners,
-    )
-
-    return compute_market_probabilities(market)
+    return compute_market_probabilities(runners)
 
 
 @app.command()
@@ -110,7 +99,9 @@ def generate_sweepstakes(
     for participant, selections in sweepstake_assignments.items():
         s = ""
         participant_probability = Decimal(0)
-        for selection in selections:
+        for selection in sorted(
+            selections, key=lambda x: x.market_adjusted, reverse=True
+        ):
             participant_probability += selection.market_adjusted
             s += f"\t{selection.runner.name} ({selection.market_adjusted*100:.2f}%)\n"
 

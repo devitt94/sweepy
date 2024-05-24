@@ -1,6 +1,7 @@
 from decimal import Decimal
 
-from sweepy.models import Market, PriceSize, RunnerProbability
+from sweepy.models import PriceSize, RunnerProbability
+from sweepy.models.runner import Runner
 
 NUM_DECIMAL_PLACES = 4
 
@@ -91,7 +92,7 @@ def calculate_implied_probability(
     return result.quantize(Decimal(f"1e-{NUM_DECIMAL_PLACES}"))
 
 
-def compute_market_probabilities(market: Market) -> list[RunnerProbability]:
+def compute_market_probabilities(runners: list[Runner]) -> list[RunnerProbability]:
     """
     Calculate the implied probabilities of each runner in a market.
 
@@ -104,7 +105,7 @@ def compute_market_probabilities(market: Market) -> list[RunnerProbability]:
 
     market_overround = Decimal(0)
     runner_probabilities = []
-    for runner in market.runners:
+    for runner in runners:
         implied_probability = calculate_implied_probability(
             back_availability=runner.available_to_back,
             lay_availability=runner.available_to_lay,
