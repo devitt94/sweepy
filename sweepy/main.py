@@ -1,10 +1,15 @@
 from decimal import Decimal
+from enum import Enum
 import os
 import dotenv
 import random
 
 import typer
-from sweepy.assignment import assign_selections_tiered
+from sweepy.assignment import (
+    assign_selections_random,
+    assign_selections_staggered,
+    assign_selections_tiered,
+)
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.models.market import Market
 from sweepy.calculator import compute_market_probabilities
@@ -18,30 +23,11 @@ US_OPEN_GOLF_WINNER = "1.216450255"
 app = typer.Typer()
 dotenv.load_dotenv()
 
-PARTICIPANTS = [
-    "Alice",
-    "Bob",
-    "Charlie",
-    "David",
-    "Edward",
-    "Frank",
-    "Geoff",
-    "Harry",
-    "India",
-    "Jade",
-    "Katherine",
-    "Laura",
-    "Mark",
-    "Nick",
-    "Olivia",
-    "Peter",
-    "Quentin",
-    "Rory",
-    "Stephen",
-    "Tom",
-    "Ulrich",
-    "Victoria",
-]
+
+class AssignmentMethod(str, Enum):
+    STAGGERED = "staggered"
+    TIERED = "tiered"
+    RANDOM = "random"
 
 
 def get_selections(
@@ -77,13 +63,18 @@ def get_selections(
 
 @app.command()
 def generate_sweepstakes(
-    market_id: str,
-    participants: list[str],
+    market_id: str = typer.Argument(
+        ..., help="The betfair market ID to generate the sweepstakes for"
+    ),
+    participants: list[str] = typer.Argument(
+        ..., help="The participants in the sweepstakes"
+    ),
+    method: AssignmentMethod = typer.Option(
+        AssignmentMethod.TIERED,
+        case_sensitive=False,
+        help="The method to use to assign selections to participants",
+    ),
 ):
-    print("Generating sweepstakes")
-    print(f"Market ID: {market_id}")
-    print(f"Participants: {participants}")
-
     client = BetfairClient(
         username=os.getenv("BETFAIR_USERNAME"),
         password=os.getenv("BETFAIR_PASSWORD"),
@@ -92,9 +83,21 @@ def generate_sweepstakes(
 
     selections = get_selections(client, market_id)
 
+    selection_assigner_func: callable[
+        [list[str], list[RunnerProbability]], dict[str, list[RunnerProbability]]
+    ]
+    if method == AssignmentMethod.STAGGERED:
+        selection_assigner_func = assign_selections_staggered
+    elif method == AssignmentMethod.TIERED:
+        selection_assigner_func = assign_selections_tiered
+    elif method == AssignmentMethod.RANDOM:
+        selection_assigner_func = assign_selections_random
+    else:
+        raise NotImplementedError(f"Assignment method {method} not implemented")
+
     random.shuffle(participants)
     sweepstake_assignments: dict[str, list[RunnerProbability]] = (
-        assign_selections_tiered(
+        selection_assigner_func(
             participants=participants,
             selections=selections,
         )

@@ -10,6 +10,11 @@ def assign_selections_staggered(
     participants: list[str],
     selections: list[RunnerProbability],
 ) -> dict[str, list[RunnerProbability]]:
+    """
+    Assign selections to participants in a staggered fashion, where the first participant gets the selection with the best odds,
+    the second participant gets the selection , and so on. Once all participants
+    have a selection, the process repeats with the participant with the lowest odds getting the next selection.
+    """
     resulting_selections = defaultdict(list)
 
     selections_ordered_by_odds = sorted(selections, reverse=True)
