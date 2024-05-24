@@ -30,7 +30,7 @@ def assign_selections_staggered(
 def assign_selections_tiered(
     participants: list[str],
     selections: list[RunnerProbability],
-):
+) -> dict[str, list[RunnerProbability]]:
     result = defaultdict(list)
 
     num_tiers = math.ceil(len(selections) / len(participants))
@@ -45,11 +45,23 @@ def assign_selections_tiered(
         for participant, selection in zip(participants, tier_selections):
             result[participant].append(selection)
 
-    return result
+    return dict(result)
 
 
 def assign_selections_random(
     participants: list[str],
     selections: list[RunnerProbability],
 ) -> dict[str, list[RunnerProbability]]:
-    pass
+    result = defaultdict(list)
+
+    random.shuffle(selections)
+    random.shuffle(participants)
+
+    for i in range(len(selections)):
+        participant_index = i % len(participants)
+        participant = participants[participant_index]
+        selection = selections[i]
+
+        result[participant].append(selection)
+
+    return dict(result)
