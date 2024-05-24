@@ -1,6 +1,9 @@
+from decimal import Decimal
 import os
 import dotenv
 import random
+
+import typer
 from sweepy.assignment import assign_selections_tiered
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.models.market import Market
@@ -12,6 +15,8 @@ from sweepy.models.runner_probability import RunnerProbability
 US_PRESEDENTIAL_ELECTION = "1.176878927"
 US_OPEN_GOLF_WINNER = "1.216450255"
 
+app = typer.Typer()
+dotenv.load_dotenv()
 
 PARTICIPANTS = [
     "Alice",
@@ -70,27 +75,41 @@ def get_selections(
     return compute_market_probabilities(market)
 
 
-def main():
-    dotenv.load_dotenv()
+@app.command()
+def generate_sweepstakes(
+    market_id: str,
+    participants: list[str],
+):
+    print("Generating sweepstakes")
+    print(f"Market ID: {market_id}")
+    print(f"Participants: {participants}")
+
     client = BetfairClient(
         username=os.getenv("BETFAIR_USERNAME"),
         password=os.getenv("BETFAIR_PASSWORD"),
         app_key=os.getenv("BETFAIR_APP_KEY"),
     )
 
-    selections = get_selections(client, US_OPEN_GOLF_WINNER)
+    selections = get_selections(client, market_id)
 
-    num_participants = 10
-    participants = PARTICIPANTS[:num_participants].copy()
     random.shuffle(participants)
-    sweepstake_assignments = assign_selections_tiered(
-        participants=participants,
-        selections=selections,
+    sweepstake_assignments: dict[str, list[RunnerProbability]] = (
+        assign_selections_tiered(
+            participants=participants,
+            selections=selections,
+        )
     )
 
-    for k, selections in sweepstake_assignments.items():
-        print(k, round(sum(sel.market_adjusted for sel in selections), 3))
+    for participant, selections in sweepstake_assignments.items():
+        s = ""
+        participant_probability = Decimal(0)
+        for selection in selections:
+            participant_probability += selection.market_adjusted
+            s += f"\t{selection.runner.name} ({selection.market_adjusted*100:.2f}%)\n"
+
+        print(f"{participant}: {participant_probability*100:.2f}%")
+        print(s)
 
 
 if __name__ == "__main__":
-    main()
+    app()
