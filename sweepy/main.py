@@ -14,7 +14,7 @@ from sweepy.assignment import (
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.calculator import compute_market_probabilities
 from sweepy.models.runner import Runner
-from sweepy.models.runner_probability import RunnerProbability
+from sweepy.models.runner_odds import RunnerOdds
 
 
 app = typer.Typer()
@@ -28,9 +28,7 @@ class AssignmentMethod(str, Enum):
     FAIR = "fair"
 
 
-def get_selections(
-    betfair_client: BetfairClient, market_id: str
-) -> list[RunnerProbability]:
+def get_selections(betfair_client: BetfairClient, market_id: str) -> list[RunnerOdds]:
     runner_names = betfair_client.get_selection_names(market_id)
 
     market = betfair_client.get_market_book(market_id)
@@ -75,7 +73,7 @@ def generate_sweepstakes(
     selections = get_selections(client, market_id)
 
     selection_assigner_func: callable[
-        [list[str], list[RunnerProbability]], dict[str, list[RunnerProbability]]
+        [list[str], list[RunnerOdds]], dict[str, list[RunnerOdds]]
     ]
     if method == AssignmentMethod.STAGGERED:
         selection_assigner_func = assign_selections_staggered
@@ -89,21 +87,19 @@ def generate_sweepstakes(
         raise NotImplementedError(f"Assignment method {method} not implemented")
 
     random.shuffle(participants)
-    sweepstake_assignments: dict[str, list[RunnerProbability]] = (
-        selection_assigner_func(
-            participants=participants,
-            selections=selections,
-        )
+    sweepstake_assignments: dict[str, list[RunnerOdds]] = selection_assigner_func(
+        participants=participants,
+        selections=selections,
     )
 
     for participant, selections in sweepstake_assignments.items():
         s = ""
         participant_probability = Decimal(0)
         for selection in sorted(
-            selections, key=lambda x: x.market_adjusted, reverse=True
+            selections, key=lambda x: x.implied_probability, reverse=True
         ):
-            participant_probability += selection.market_adjusted
-            s += f"\t{selection.runner.name} ({selection.market_adjusted*100:.2f}%)\n"
+            participant_probability += selection.implied_probability
+            s += f"\t{selection.runner_name} ({selection.implied_probability*100:.2f}%)\n"
 
         print(f"{participant}: {participant_probability*100:.2f}%")
         print(s)

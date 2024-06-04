@@ -11,11 +11,7 @@ from decimal import Decimal
         ([], []),
         ([PriceSize(price=2.0, size=20), PriceSize(price=3.0, size=20)], []),
         (
-            [
-                PriceSize(price=2.0, size=10),
-                PriceSize(price=3.0, size=20),
-                PriceSize(price=4.0, size=30),
-            ],
+            [],
             [
                 PriceSize(price=2.0, size=10),
                 PriceSize(price=3.0, size=20),
@@ -41,7 +37,7 @@ def test_calculate_implied_probability_invalid_input(
         (
             [PriceSize(price=2.0, size=100), PriceSize(price=3.0, size=200)],
             [PriceSize(price=4.0, size=50), PriceSize(price=5.0, size=200)],
-            Decimal("0.2667"),
+            Decimal("0.2857"),
         ),
         (
             [PriceSize(price=75.0, size=2), PriceSize(price=50, size=200)],
@@ -50,7 +46,7 @@ def test_calculate_implied_probability_invalid_input(
                 PriceSize(price=340, size=20),
                 PriceSize(price=500, size=300),
             ],
-            Decimal("0.0040"),
+            Decimal("0.0053"),
         ),
         (
             [PriceSize(price=2.0, size=100), PriceSize(price=3.0, size=200)],
@@ -59,7 +55,7 @@ def test_calculate_implied_probability_invalid_input(
                 PriceSize(price=4.0, size=20),
                 PriceSize(price=6.0, size=400),
             ],
-            Decimal("0.2469"),
+            Decimal("0.2778"),
         ),
     ],
 )

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sweepy.models import PriceSize, RunnerProbability
+from sweepy.models import PriceSize, RunnerOdds
 from sweepy.models.runner import Runner
 
 NUM_DECIMAL_PLACES = 4
@@ -8,8 +8,7 @@ NUM_DECIMAL_PLACES = 4
 
 def _get_weighted_average_price(
     list_of_price_sizes: list[PriceSize],
-    min_size: Decimal = Decimal("1.0"),
-    max_size: Decimal = Decimal("1.0"),
+    required_notional_size: Decimal = Decimal("100.0"),
 ) -> Decimal:
     """
     Calculate the size-weighted average price from  a list of PriceSize objects up to 4 decimal.
@@ -36,14 +35,15 @@ def _get_weighted_average_price(
     total_size = Decimal(0)
     weighted_sum = Decimal(0)
     for price_size in list_of_price_sizes:
-        size_to_add = min(max_size - total_size, price_size.size)
+        notional_size = price_size.size * price_size.price
+        size_to_add = min(required_notional_size - total_size, notional_size)
         if size_to_add <= 0:
             break
 
         total_size += size_to_add
         weighted_sum += size_to_add * price_size.price
 
-    if total_size < min_size:
+    if total_size < required_notional_size:
         return Decimal("nan")
 
     result = weighted_sum / total_size
@@ -92,7 +92,7 @@ def calculate_implied_probability(
     return result.quantize(Decimal(f"1e-{NUM_DECIMAL_PLACES}"))
 
 
-def compute_market_probabilities(runners: list[Runner]) -> list[RunnerProbability]:
+def compute_market_probabilities(runners: list[Runner]) -> list[RunnerOdds]:
     """
     Calculate the implied probabilities of each runner in a market.
 
@@ -118,10 +118,9 @@ def compute_market_probabilities(runners: list[Runner]) -> list[RunnerProbabilit
         runner_probabilities.append((runner, implied_probability))
 
     return [
-        RunnerProbability(
-            runner=runner,
-            implied=implied_probability,
-            market_adjusted=(implied_probability / market_overround).quantize(
+        RunnerOdds(
+            runner_name=runner.name,
+            implied_probability=(implied_probability / market_overround).quantize(
                 implied_probability
             ),
         )

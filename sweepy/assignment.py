@@ -4,13 +4,13 @@ from decimal import Decimal
 import random
 import math
 
-from sweepy.models.runner_probability import RunnerProbability
+from sweepy.models.runner_odds import RunnerOdds
 
 
 def assign_selections_staggered(
     participants: list[str],
-    selections: list[RunnerProbability],
-) -> dict[str, list[RunnerProbability]]:
+    selections: list[RunnerOdds],
+) -> dict[str, list[RunnerOdds]]:
     """
     Assign selections to participants in a staggered fashion, where the first participant gets the selection with the best odds,
     the second participant gets the selection , and so on. Once all participants
@@ -35,8 +35,8 @@ def assign_selections_staggered(
 
 def assign_selections_tiered(
     participants: list[str],
-    selections: list[RunnerProbability],
-) -> dict[str, list[RunnerProbability]]:
+    selections: list[RunnerOdds],
+) -> dict[str, list[RunnerOdds]]:
     result = defaultdict(list)
 
     num_tiers = math.ceil(len(selections) / len(participants))
@@ -56,8 +56,8 @@ def assign_selections_tiered(
 
 def assign_selections_random(
     participants: list[str],
-    selections: list[RunnerProbability],
-) -> dict[str, list[RunnerProbability]]:
+    selections: list[RunnerOdds],
+) -> dict[str, list[RunnerOdds]]:
     result = defaultdict(list)
 
     random.shuffle(selections)
@@ -75,10 +75,10 @@ def assign_selections_random(
 
 def assign_selections_fair(
     participants: list[str],
-    selections: list[RunnerProbability],
-) -> dict[str, list[RunnerProbability]]:
+    selections: list[RunnerOdds],
+) -> dict[str, list[RunnerOdds]]:
     """
-    This function assigns selections to participants in a way the maximises fairness i.e. each participant has as close to the same
+    This function assigns selections to particip_runner_probabilities_us_open]ants in a way the maximises fairness i.e. each participant has as close to the same
     expected value as possible.
     """
     result = {}
@@ -94,7 +94,7 @@ def assign_selections_fair(
     for participant in participants:
         result[participant] = []
         first_selection = selections_ordered_by_odds.pop(0)
-        remaining_probabilities[participant] -= first_selection.market_adjusted
+        remaining_probabilities[participant] -= first_selection.implied_probability
         result[participant].append(first_selection)
 
     random.shuffle(selections_ordered_by_odds)
@@ -105,7 +105,7 @@ def assign_selections_fair(
         )
         result[participant_with_most_remaining_probability].append(selection)
         remaining_probabilities[participant_with_most_remaining_probability] -= (
-            selection.market_adjusted
+            selection.implied_probability
         )
 
     return dict(result)
