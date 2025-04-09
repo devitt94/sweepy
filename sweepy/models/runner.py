@@ -1,7 +1,7 @@
 from decimal import Decimal
 from pydantic import BaseModel
 
-from sweepy.models.price_size import PriceSize
+from .price_size import PriceSize
 
 
 class Runner(BaseModel):

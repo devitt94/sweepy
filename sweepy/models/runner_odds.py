@@ -12,5 +12,8 @@ class RunnerOdds(BaseModel):
     def __gt__(self, other: "RunnerOdds") -> bool:
         return self.implied_probability > other.implied_probability
 
+    def __str__(self):
+        return f"{self.runner_name} ({self.implied_probability*100:.2f}%)"
+
     class Config:
         frozen = True

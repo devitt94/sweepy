@@ -1,7 +1,6 @@
 from decimal import Decimal
 
-from sweepy.models import PriceSize, RunnerOdds
-from sweepy.models.runner import Runner
+from sweepy.models import PriceSize, RunnerOdds, Runner
 
 NUM_DECIMAL_PLACES = 4
 
