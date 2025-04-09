@@ -4,7 +4,7 @@ import dotenv
 import typer
 from sweepy import generate_sweepstakes
 from sweepy.integrations.betfair import BetfairClient
-from sweepy.models.enums import AssignmentMethod
+from sweepy.models import AssignmentMethod, SweepstakesRequest
 
 
 app = typer.Typer()
@@ -35,12 +35,17 @@ def generate_sweepstakes_cli(
         app_key=os.getenv("BETFAIR_APP_KEY"),
     )
 
+    request = SweepstakesRequest(
+        name="CLI Sweepstakes",
+        market_id=market_id,
+        method=method,
+        participant_names=participants,
+        ignore_longshots=ignore_longshots,
+    )
+
     response = generate_sweepstakes.generate_sweepstakes(
         client=client,
-        market_id=market_id,
-        participants=participants,
-        method=method,
-        ignore_longshots=ignore_longshots,
+        request=request,
     )
 
     print(response)

@@ -1,12 +1,16 @@
 from decimal import Decimal
 import random
 from sweepy.calculator import compute_market_probabilities
-from sweepy.cli import AssignmentMethod
 from sweepy.integrations.betfair import BetfairClient
-from sweepy.models import Runner, RunnerOdds
+from sweepy.models import (
+    AssignmentMethod,
+    Runner,
+    RunnerOdds,
+    Participant,
+    SweepstakesRequest,
+    SweepstakesResponse,
+)
 from sweepy import assignment
-from sweepy.models.api import SweepstakesResponse
-from sweepy.models.participant import Participant
 
 
 def get_selections(
@@ -38,32 +42,29 @@ def get_selections(
 
 def generate_sweepstakes(
     client: BetfairClient,
-    market_id: str,
-    participants: list[str],
-    method: AssignmentMethod,
-    ignore_longshots: bool = False,
+    request: SweepstakesRequest,
 ) -> SweepstakesResponse:
-    selections = get_selections(client, market_id, ignore_longshots)
+    selections = get_selections(client, request.market_id, request.ignore_longshots)
     num_selections = len(selections)
 
     selection_assigner_func: callable[
         [list[str], list[RunnerOdds]], dict[str, list[RunnerOdds]]
     ]
 
-    if method == AssignmentMethod.STAGGERED:
+    if request.method == AssignmentMethod.STAGGERED:
         selection_assigner_func = assignment.assign_selections_staggered
-    elif method == AssignmentMethod.TIERED:
+    elif request.method == AssignmentMethod.TIERED:
         selection_assigner_func = assignment.assign_selections_tiered
-    elif method == AssignmentMethod.RANDOM:
+    elif request.method == AssignmentMethod.RANDOM:
         selection_assigner_func = assignment.assign_selections_random
-    elif method == AssignmentMethod.FAIR:
+    elif request.method == AssignmentMethod.FAIR:
         selection_assigner_func = assignment.assign_selections_fair
     else:
-        raise NotImplementedError(f"Assignment method {method} not implemented")
+        raise NotImplementedError(f"Assignment method {request.method} not implemented")
 
-    random.shuffle(participants)
+    random.shuffle(request.participant_names)
     sweepstake_assignments: dict[str, list[RunnerOdds]] = selection_assigner_func(
-        participants=participants,
+        participants=request.participant_names,
         selections=selections,
     )
 
@@ -87,9 +88,9 @@ def generate_sweepstakes(
         )
 
     return SweepstakesResponse(
-        name="Sweepstakes " + market_id,
-        market_id=market_id,
-        method=method,
+        name=request.name,
+        market_id=request.market_id,
+        method=request.method,
         num_selections=num_selections,
         participants=assigned_participants,
     )

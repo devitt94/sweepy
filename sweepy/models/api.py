@@ -14,6 +14,7 @@ class SweepstakesRequest(BaseModel):
     market_id: str
     method: AssignmentMethod
     participant_names: list[str]
+    ignore_longshots: bool = False
 
 
 class SweepstakesResponse(BaseModel):
