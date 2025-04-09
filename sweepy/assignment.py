@@ -4,7 +4,7 @@ from decimal import Decimal
 import random
 import math
 
-from sweepy.models.runner_odds import RunnerOdds
+from sweepy.models import RunnerOdds
 
 
 def assign_selections_staggered(

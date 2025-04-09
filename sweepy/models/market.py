@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from sweepy.models.runner import Runner
+from .runner import Runner
 
 
 class Market(BaseModel):
