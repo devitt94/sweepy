@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, conlist
 
 from sweepy.models.enums import AssignmentMethod
 
@@ -13,7 +13,7 @@ class SweepstakesRequest(BaseModel):
     name: str
     market_id: str
     method: AssignmentMethod
-    participant_names: list[str]
+    participant_names: list[str] = conlist(str, min_length=2)
     ignore_longshots: bool = False
 
 

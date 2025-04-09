@@ -13,6 +13,7 @@ dotenv.load_dotenv()
 
 @app.command()
 def generate_sweepstakes_cli(
+    name: str = typer.Argument(..., help="The name of the sweepstakes to generate"),
     market_id: str = typer.Argument(
         ..., help="The betfair market ID to generate the sweepstakes for"
     ),
@@ -36,7 +37,7 @@ def generate_sweepstakes_cli(
     )
 
     request = SweepstakesRequest(
-        name="CLI Sweepstakes",
+        name=name,
         market_id=market_id,
         method=method,
         participant_names=participants,
