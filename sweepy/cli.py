@@ -24,6 +24,10 @@ def generate_sweepstakes_cli(
         case_sensitive=False,
         help="The method to use to assign selections to participants",
     ),
+    ignore_longshots: bool = typer.Option(
+        False,
+        help="Exclude selections with odds greater than 1000 (i.e. not available to lay)",
+    ),
 ):
     client = BetfairClient(
         username=os.getenv("BETFAIR_USERNAME"),
@@ -36,6 +40,7 @@ def generate_sweepstakes_cli(
         market_id=market_id,
         participants=participants,
         method=method,
+        ignore_longshots=ignore_longshots,
     )
 
     print(response)

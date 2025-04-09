@@ -9,7 +9,9 @@ from sweepy.models.api import SweepstakesResponse
 from sweepy.models.participant import Participant
 
 
-def get_selections(betfair_client: BetfairClient, market_id: str) -> list[RunnerOdds]:
+def get_selections(
+    betfair_client: BetfairClient, market_id: str, ignore_longshots: bool
+) -> list[RunnerOdds]:
     runner_names = betfair_client.get_selection_names(market_id)
 
     market = betfair_client.get_market_book(market_id)
@@ -18,15 +20,18 @@ def get_selections(betfair_client: BetfairClient, market_id: str) -> list[Runner
     for runner_book in market["runners"]:
         selection_id = runner_book["selectionId"]
         runner_name = runner_names[selection_id]
-        runners.append(
-            Runner(
-                runner_id=selection_id,
-                name=runner_name,
-                available_to_back=runner_book["ex"]["availableToBack"],
-                available_to_lay=runner_book["ex"]["availableToLay"],
-                last_price_traded=runner_book.get("lastPriceTraded"),
-            )
+        runner = Runner(
+            runner_id=selection_id,
+            name=runner_name,
+            available_to_back=runner_book["ex"]["availableToBack"],
+            available_to_lay=runner_book["ex"]["availableToLay"],
+            last_price_traded=runner_book.get("lastPriceTraded"),
         )
+
+        if ignore_longshots and not runner.available_to_lay:
+            continue
+
+        runners.append(runner)
 
     return compute_market_probabilities(runners)
 
@@ -36,8 +41,10 @@ def generate_sweepstakes(
     market_id: str,
     participants: list[str],
     method: AssignmentMethod,
+    ignore_longshots: bool = False,
 ) -> SweepstakesResponse:
-    selections = get_selections(client, market_id)
+    selections = get_selections(client, market_id, ignore_longshots)
+    num_selections = len(selections)
 
     selection_assigner_func: callable[
         [list[str], list[RunnerOdds]], dict[str, list[RunnerOdds]]
@@ -83,6 +90,6 @@ def generate_sweepstakes(
         name="Sweepstakes " + market_id,
         market_id=market_id,
         method=method,
-        num_selections=len(selections),
+        num_selections=num_selections,
         participants=assigned_participants,
     )
