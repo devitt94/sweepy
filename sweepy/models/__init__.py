@@ -5,6 +5,7 @@ from .runner_odds import RunnerOdds
 from .participant import Participant
 from .api import SweepstakesRequest, SweepstakesResponse
 from .enums import AssignmentMethod
+from .exceptions import MarketNotFoundException, NotEnoughSelectionsException
 
 __all__ = [
     "AssignmentMethod",
@@ -15,4 +16,6 @@ __all__ = [
     "Participant",
     "SweepstakesRequest",
     "SweepstakesResponse",
+    "MarketNotFoundException",
+    "NotEnoughSelectionsException",
 ]

@@ -9,6 +9,8 @@ from sweepy.models import (
     Participant,
     SweepstakesRequest,
     SweepstakesResponse,
+    MarketNotFoundException,
+    NotEnoughSelectionsException,
 )
 from sweepy import assignment
 
@@ -16,7 +18,10 @@ from sweepy import assignment
 def get_selections(
     betfair_client: BetfairClient, market_id: str, ignore_longshots: bool
 ) -> list[RunnerOdds]:
-    runner_names = betfair_client.get_selection_names(market_id)
+    try:
+        runner_names = betfair_client.get_selection_names(market_id)
+    except Exception:
+        raise MarketNotFoundException(f"Market not found for market_id {market_id}.")
 
     market = betfair_client.get_market_book(market_id)
 
@@ -46,6 +51,10 @@ def generate_sweepstakes(
 ) -> SweepstakesResponse:
     selections = get_selections(client, request.market_id, request.ignore_longshots)
     num_selections = len(selections)
+    num_participants = len(request.participant_names)
+
+    if num_selections < num_participants:
+        raise NotEnoughSelectionsException(num_selections, num_participants)
 
     selection_assigner_func: callable[
         [list[str], list[RunnerOdds]], dict[str, list[RunnerOdds]]
