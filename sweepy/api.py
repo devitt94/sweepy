@@ -29,11 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="sweepy/static"), name="static")
+
+app.mount("/assets", StaticFiles(directory="sweepy/static/assets"), name="assets")
 
 
 @app.get("/")
-async def serve_react_app():
+async def serve_index():
     return FileResponse("sweepy/static/index.html")
 
 
