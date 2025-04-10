@@ -34,7 +34,7 @@ app.mount("/static", StaticFiles(directory="sweepy/static"), name="static")
 
 @app.get("/")
 async def serve_react_app():
-    return FileResponse("app/static/index.html")
+    return FileResponse("sweepy/static/index.html")
 
 
 betfair_client = BetfairClient(
