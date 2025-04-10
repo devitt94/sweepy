@@ -6,7 +6,7 @@ function App() {
     market_id: "",
     method: "tiered",
     name: "",
-    participants: "",
+    participants: [""],
   });
 
   const [response, setResponse] = useState(null);
@@ -26,7 +26,7 @@ function App() {
     try {
       const payload = {
         ...formData,
-        participant_names: formData.participants.split(",").map((p) => p.trim()),
+        participant_names: formData.participants.filter((p) => p.trim() !== ""),
       };
 
       const res = await axios.post("http://localhost:8000/sweepstakes", payload);
@@ -83,14 +83,51 @@ function App() {
             <option value="staggered">Staggered</option>
             <option value="fair">Fairest</option>
           </select>
-          <textarea
-            name="participants"
-            placeholder="Participants (comma-separated)"
-            value={formData.participants}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
+          {/* Participants List */}
+          <div>
+            <label className="block font-medium mb-1">Participants</label>
+            {formData.participants.map((participant, index) => (
+              <div key={index} className="flex items-center space-x-2 mb-2">
+                <input
+                  type="text"
+                  value={participant}
+                  onChange={(e) => {
+                    const newParticipants = [...formData.participants];
+                    newParticipants[index] = e.target.value;
+                    setFormData((prev) => ({ ...prev, participants: newParticipants }));
+                  }}
+                  className="flex-1 p-2 border rounded"
+                  placeholder={`Participant ${index + 1}`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...formData.participants];
+                    updated.splice(index, 1);
+                    setFormData((prev) => ({ ...prev, participants: updated }));
+                  }}
+                  className="text-red-500 hover:text-red-700"
+                  title="Remove"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  participants: [...prev.participants, ""],
+                }))
+              }
+              className="mt-2 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + Add Participant
+            </button>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
