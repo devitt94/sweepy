@@ -29,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="app/static/static"), name="static")
+app.mount("/static", StaticFiles(directory="sweepy/static"), name="static")
 
 
 @app.get("/")
