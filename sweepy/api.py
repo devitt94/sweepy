@@ -1,3 +1,4 @@
+import logging
 import os
 import dotenv
 from fastapi import FastAPI
@@ -16,18 +17,18 @@ dotenv.load_dotenv()
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",  # Vite default dev server
-    "http://127.0.0.1:5173",
-]
+origins = os.getenv("FRONTEND_ORIGINS", "").split(",")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    logging.warning("No origins specified in FRONTEND_ORIGINS. CORS is disabled.")
 
 
 app.mount("/assets", StaticFiles(directory="sweepy/static/assets"), name="assets")

@@ -9,6 +9,8 @@ function App() {
     participants: [""],
   });
 
+  const API_BASE = import.meta.env.VITE_API_URL;
+
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
@@ -29,7 +31,7 @@ function App() {
         participant_names: formData.participants.filter((p) => p.trim() !== ""),
       };
 
-      const res = await axios.post("http://localhost:8000/sweepstakes", payload);
+      const res = await axios.post(`${API_BASE}/sweepstakes`, payload);
 
       // Sort participants by name in ascending order
       const sortedParticipants = res.data.participants.sort((a, b) =>
