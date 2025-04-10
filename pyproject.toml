@@ -12,6 +12,8 @@ pydantic = "^2.6.4"
 python-dotenv = "^1.0.1"
 requests = "^2.31.0"
 fastapi = {extras = ["standard"], version = "^0.115.12"}
+gunicorn = "^23.0.0"
+uvicorn = "^0.34.0"
 
 
 [tool.poetry.group.dev.dependencies]
