@@ -30,7 +30,7 @@ function App() {
       };
 
       const res = await axios.post("http://localhost:8000/sweepstakes", payload);
-      
+
       // Sort participants by name in ascending order
       const sortedParticipants = res.data.participants.sort((a, b) =>
         a.name.localeCompare(b.name)
@@ -78,8 +78,10 @@ function App() {
             onChange={handleChange}
             className="w-full p-2 border rounded"
           >
-            <option value="tiered">Tiered</option>
             <option value="random">Random</option>
+            <option value="tiered">Tiered</option>
+            <option value="staggered">Staggered</option>
+            <option value="fair">Fairest</option>
           </select>
           <textarea
             name="participants"
