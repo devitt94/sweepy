@@ -27,6 +27,8 @@ def get_selections(
 
     runners = []
     for runner_book in market["runners"]:
+        if runner_book["status"] != "ACTIVE":
+            continue
         selection_id = runner_book["selectionId"]
         runner_name = runner_names[selection_id]
         runner = Runner(
