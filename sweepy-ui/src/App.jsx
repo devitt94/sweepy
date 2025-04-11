@@ -11,6 +11,8 @@ function App() {
 
   const API_BASE = import.meta.env.VITE_API_URL;
 
+  console.log("API_BASE", API_BASE);
+
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
