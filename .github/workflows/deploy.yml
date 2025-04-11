@@ -1,0 +1,50 @@
+name: Build and Deploy Fullstack App
+
+on:
+  push:
+    branches:
+      - main
+      - CI-improvements
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install frontend dependencies
+        working-directory: sweepy-ui
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: sweepy-ui
+        run: npm run build
+
+      - name: Copy frontend build to backend
+        run: |
+          rm -rf sweepy/static
+          mkdir -p sweepy/static
+          cp -r sweepy-ui/dist/* sweepy/static/
+
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh 
+      
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.14.15
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "sweepy"
+          heroku_email: "rorytdevitt@gmail.com"
