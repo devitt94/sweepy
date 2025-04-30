@@ -15,6 +15,9 @@ engine = create_engine(
 
 
 def init_db():
+    if os.getenv("ENVIRONMENT") == "development":
+        SQLModel.metadata.drop_all(engine)
+
     SQLModel.metadata.create_all(engine)
 
 

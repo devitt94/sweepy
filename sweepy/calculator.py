@@ -118,7 +118,8 @@ def compute_market_probabilities(runners: list[Runner]) -> list[RunnerOdds]:
 
     return [
         RunnerOdds(
-            runner_name=runner.name,
+            provider_id=runner.runner_id,
+            name=runner.name,
             implied_probability=(implied_probability / market_overround).quantize(
                 implied_probability
             ),

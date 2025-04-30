@@ -174,7 +174,7 @@ function App() {
                               <tbody>
                                 {p.assignments.map((assignment, idx) => (
                                   <tr key={idx}>
-                                    <td className="px-4 py-2">{assignment.runner_name}</td>
+                                    <td className="px-4 py-2">{assignment.name}</td>
                                     <td className="px-4 py-2">
                                       {parseFloat(assignment.implied_probability*100).toFixed(2)}%
                                     </td>
