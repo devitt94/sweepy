@@ -1,4 +1,5 @@
 # Build frontend
+set -eux o pipefail
 
 cd sweepy-ui/
 npm run build-dev
