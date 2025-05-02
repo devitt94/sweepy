@@ -1,7 +1,12 @@
 from decimal import Decimal
+import random
 from pytest import fixture
 
 from sweepy.models import RunnerOdds
+
+
+def _generate_random_id() -> int:
+    return random.randint(1, 10e10)
 
 
 @fixture
@@ -82,7 +87,12 @@ def runner_probabilities_us_open() -> list[RunnerOdds]:
         ("Stewart Cink", Decimal("0.0014")),
         ("Darren Clarke", Decimal("0.0000")),
     ]
+
     return [
-        RunnerOdds(runner_name=name, implied_probability=probability)
+        RunnerOdds(
+            provider_id=_generate_random_id(),
+            name=name,
+            implied_probability=probability,
+        )
         for name, probability in items
     ]

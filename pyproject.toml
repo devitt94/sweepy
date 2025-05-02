@@ -14,6 +14,8 @@ requests = "^2.31.0"
 fastapi = {extras = ["standard"], version = "^0.115.12"}
 gunicorn = "^23.0.0"
 uvicorn = "^0.34.0"
+sqlmodel = "^0.0.24"
+psycopg2-binary = "^2.9.10"
 
 
 [tool.poetry.group.dev.dependencies]

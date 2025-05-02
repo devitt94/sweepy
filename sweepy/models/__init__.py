@@ -1,9 +1,6 @@
-from .market import Market
-from .price_size import PriceSize
-from .runner import Runner
-from .runner_odds import RunnerOdds
-from .participant import Participant
-from .api import SweepstakesRequest, SweepstakesResponse
+from .market import Market, Runner, PriceSize
+from .sweepstakes import RunnerOdds, Participant, Sweepstakes
+from .api import SweepstakesRequest
 from .enums import AssignmentMethod
 from .exceptions import MarketNotFoundException, NotEnoughSelectionsException
 
@@ -15,7 +12,7 @@ __all__ = [
     "RunnerOdds",
     "Participant",
     "SweepstakesRequest",
-    "SweepstakesResponse",
+    "Sweepstakes",
     "MarketNotFoundException",
     "NotEnoughSelectionsException",
 ]
