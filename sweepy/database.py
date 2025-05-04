@@ -11,6 +11,7 @@ if os.getenv("ENVIRONMENT") == "development":
     connect_args = {}
 else:
     connect_args = {"sslmode": "require"}
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 engine = create_engine(
     DATABASE_URL,
