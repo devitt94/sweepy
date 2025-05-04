@@ -5,14 +5,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL").replace(
-    "postgres://", "postgresql+asyncpg://", 1
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if os.getenv("ENVIRONMENT") == "development":
+    connect_args = {}
+else:
+    connect_args = {"sslmode": "require"}
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"sslmode": "require"},  # Required for Heroku Postgres
+    connect_args=connect_args,  # Required for Heroku Postgres
 )
 
 
