@@ -1,50 +1,32 @@
-name: Build and Deploy Fullstack App
+name: Deploy to Heroku (Docker)
 
 on:
   push:
     branches:
       - main
-      - hotfix
+      - dockerize
 
 jobs:
-  build-and-deploy:
+  deploy:
+    name: Build and Deploy to Heroku
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install frontend dependencies
-        working-directory: sweepy-ui
-        run: npm ci
-
-      - name: Build frontend
-        working-directory: sweepy-ui
-        run: npm run build
-
-      - name: Copy frontend build to backend
+      - name: Log in to Heroku Container Registry
         run: |
-          rm -rf sweepy/static
-          mkdir -p sweepy/static
-          cp -r sweepy-ui/dist/* sweepy/static/
+          echo "${{ secrets.HEROKU_API_KEY }}" | docker login --username=_ --password-stdin registry.heroku.com
 
-      - name: Install Heroku CLI
+      - name: Build Docker image
+        run: docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web .
+
+      - name: Push Docker image
+        run: docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+
+      - name: Release app
         run: |
-          curl https://cli-assets.heroku.com/install.sh | sh 
-      
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.14.15
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "sweepy"
-          heroku_email: "rorytdevitt@gmail.com"
+          heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
