@@ -39,7 +39,7 @@ RUN poetry config virtualenvs.create false \
 COPY sweepy/ ./sweepy
 
 # Copy built frontend
-COPY --from=frontend /app/dist ./sweepy/app/static
+COPY --from=frontend /app/dist ./sweepy/static
 
 # Expose port (FastAPI default is 8000)
 EXPOSE 8000
