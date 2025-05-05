@@ -43,6 +43,7 @@ COPY --from=frontend /app/dist ./sweepy/static
 
 # Expose port (FastAPI default is 8000)
 EXPOSE 8000
+ENV PORT=8000
 
 # Run with gunicorn + uvicorn workers
-CMD ["poetry", "run", "uvicorn", "sweepy.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD poetry run uvicorn sweepy.api:app --host 0.0.0.0 --port ${PORT}
