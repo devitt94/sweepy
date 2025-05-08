@@ -26,7 +26,7 @@ function CreateFrom({handleSubmitSuccess}) {
         participant_names: formData.participants.filter((p) => p.trim() !== ""),
       };
 
-      const res = await axios.post(`/sweepstakes`, payload);
+      const res = await axios.post(`/api/sweepstakes`, payload);
 
       // Sort participants by name in ascending order
       const sortedParticipants = res.data.participants.sort((a, b) =>
