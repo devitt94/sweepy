@@ -70,7 +70,7 @@ async def serve_index():
     return FileResponse("sweepy/static/index.html")
 
 
-@app.post("/sweepstakes")
+@app.post("/api/sweepstakes")
 def create_sweepstakes(
     request: SweepstakesRequest,
     session: Session = Depends(get_session),
@@ -94,7 +94,7 @@ def create_sweepstakes(
     return response
 
 
-@app.get("/sweepstakes", response_model=list[Sweepstakes])
+@app.get("/api/sweepstakes", response_model=list[Sweepstakes])
 def list_sweepstakes(session: Session = Depends(get_session)) -> list[Sweepstakes]:
     all_sweepstakes = session.exec(select(db_models.Sweepstakes)).all()
 
@@ -107,7 +107,7 @@ def list_sweepstakes(session: Session = Depends(get_session)) -> list[Sweepstake
     return resp
 
 
-@app.get("/sweepstakes/{sweepstake_id}", response_model=Sweepstakes)
+@app.get("/api/sweepstakes/{sweepstake_id}", response_model=Sweepstakes)
 def get_sweepstake(
     sweepstake_id: int, session: Session = Depends(get_session)
 ) -> Sweepstakes:
