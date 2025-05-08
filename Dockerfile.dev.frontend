@@ -1,0 +1,10 @@
+FROM node:18
+
+WORKDIR /app
+
+COPY sweepy-ui/package*.json ./
+RUN npm install
+
+COPY sweepy-ui ./
+
+CMD ["npm", "run", "dev"]

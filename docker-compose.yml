@@ -1,16 +1,30 @@
 version: '3.9'
 
 services:
-  app:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev.backend
+    volumes:
+      - ./sweepy:/app/sweepy  # mount backend source code
+    env_file:
+      - .env
     ports:
       - "8000:8000"
-    env_file:
-      - .env 
-    depends_on:
-      - db
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev.frontend
+    volumes:
+      - ./sweepy-ui:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
   db:
     image: postgres:15

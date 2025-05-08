@@ -1,35 +1,67 @@
 import React, { useState } from 'react';
 import CreateForm from './components/CreateForm';
+import SearchForm from './components/SearchForm';
 import Table from './components/Table';
 import Menu from './components/Menu';
 
 const App = () => {
+  const [error, setError] = useState(null);
   const [displayMenu, setDisplayMenu] = useState(true);
   const [displaySearchForm, setDisplaySearchForm] = useState(false);
   const [displayCreateForm, setDisplayCreateForm] = useState(false);
   const [sweepstake, setSweepstake] = useState(null);
 
   const handleApiResponse = (responseData) => {
+    setError(null);
     setSweepstake(responseData);
     setDisplayMenu(false);
     setDisplayCreateForm(false);
     setDisplaySearchForm(false);
   };
 
+  const lookupSweepstake = (id) => {
+    fetch(`/api/sweepstakes/${id}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setError(null);
+        setSweepstake(data);
+        setDisplayMenu(false);
+        setDisplayCreateForm(false);
+        setDisplaySearchForm(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching sweepstake:', error);
+        setError(`Could not find sweepstake with that ID (${id})`);
+      });
+  }
+
   const mainComponent = () => {
+    let component;
     if (displayMenu) {
       console.log("Rendering Menu");
-      return <Menu setDisplayCreateForm={setDisplayCreateForm} setDisplayMenu={setDisplayMenu} setDisplaySearchForm={setDisplaySearchForm}/>;
+      component = <Menu setDisplayCreateForm={setDisplayCreateForm} setDisplayMenu={setDisplayMenu} setDisplaySearchForm={setDisplaySearchForm}/>;
     } else if (displayCreateForm) {
       console.log("Rendering Create Form");
-      return <CreateForm handleSubmitSuccess={handleApiResponse} />;
+      component = <CreateForm handleSubmitSuccess={handleApiResponse} />;
     } else if (displaySearchForm) {
       console.log("Rendering Search Form");
-      return <p>Not implemented yet!</p>
+      component = <SearchForm lookupSweepstake={lookupSweepstake}/>;
     } else if (sweepstake) {
       console.log("Rendering Table");
-      return <Table data={sweepstake} />;
+      component = <Table data={sweepstake} />;
     }
+
+    return (
+      <div>
+        {error && <p className="text-red-500">{error}</p>}
+        {component}
+      </div>
+    );
   }
 
   return (
