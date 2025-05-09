@@ -20,8 +20,10 @@ def get_selections(
 ) -> list[RunnerOdds]:
     try:
         runner_names = betfair_client.get_selection_names(market_id)
-    except Exception:
-        raise MarketNotFoundException(f"Market not found for market_id {market_id}.")
+    except Exception as e:
+        raise MarketNotFoundException(
+            f"Market not found for market_id {market_id}."
+        ) from e
 
     market = betfair_client.get_market_book(market_id)
 
