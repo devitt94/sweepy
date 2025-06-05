@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test-deploy
     
 jobs:
   deploy:
@@ -19,8 +20,10 @@ jobs:
           curl https://cli-assets.heroku.com/install.sh | sh
 
       - name: Log in to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          echo "${{ secrets.HEROKU_API_KEY }}" | docker login --username=_ --password-stdin registry.heroku.com
+          echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
 
       - name: Build Docker image
         run: docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web .
