@@ -61,8 +61,10 @@ if origins:
 else:
     logging.warning("No origins specified in FRONTEND_ORIGINS. CORS is disabled.")
 
-
-app.mount("/assets", StaticFiles(directory="sweepy/static/assets"), name="assets")
+try:
+    app.mount("/assets", StaticFiles(directory="sweepy/static/assets"), name="assets")
+except Exception as e:
+    logging.warning(f"Failed to mount static files: {e}. Ensure the directory exists.")
 
 
 @app.get("/")
