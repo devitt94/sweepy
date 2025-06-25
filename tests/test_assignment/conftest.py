@@ -6,7 +6,7 @@ from sweepy.models import RunnerOdds
 
 
 def _generate_random_id() -> str:
-    return str(random.randint(1, 10e10))
+    return str(random.randint(1, int(10e10)))
 
 
 @fixture
