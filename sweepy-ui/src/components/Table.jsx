@@ -13,6 +13,10 @@ function Table({data, refreshSweepstake, closeSweepstake}) {
     };
 
     const closeHandler = () => {
+        if (!window.confirm("Are you sure you want to close this sweepstake?")) {
+            return;
+        }
+        
         closeSweepstake(data.id);
     };
         
