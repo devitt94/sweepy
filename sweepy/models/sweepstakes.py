@@ -1,3 +1,4 @@
+import datetime
 from pydantic import BaseModel, condecimal
 from decimal import Decimal
 
@@ -5,7 +6,7 @@ from sweepy.models.enums import AssignmentMethod
 
 
 class RunnerOdds(BaseModel):
-    provider_id: int
+    provider_id: str
     name: str
     implied_probability: Decimal = condecimal(ge=0, le=1)
 
@@ -37,8 +38,10 @@ class Participant(BaseModel):
 
 
 class Sweepstakes(BaseModel):
+    id: str
     name: str
     market_id: str
     method: AssignmentMethod
+    updated_at: datetime.datetime
     participants: list[Participant]
     ignore_longshots: bool = False

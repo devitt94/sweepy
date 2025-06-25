@@ -1,4 +1,6 @@
+import datetime
 from decimal import Decimal
+import logging
 import random
 from sweepy.calculator import compute_market_probabilities
 from sweepy.integrations.betfair import BetfairClient
@@ -34,7 +36,7 @@ def get_selections(
         selection_id = runner_book["selectionId"]
         runner_name = runner_names[selection_id]
         runner = Runner(
-            runner_id=selection_id,
+            runner_id=str(selection_id),
             name=runner_name,
             available_to_back=runner_book["ex"]["availableToBack"],
             available_to_lay=runner_book["ex"]["availableToLay"],
@@ -126,6 +128,7 @@ def convert_db_model_to_response(
     """
 
     jsondata = sweepstakes_db.model_dump()
+    jsondata["id"] = sweepstakes_db.stringified_id
     participants = [
         {
             "name": participant.name,
@@ -143,5 +146,64 @@ def convert_db_model_to_response(
     ]
 
     jsondata["participants"] = participants
+    jsondata["updated_at"] = sweepstakes_db.updated_at.isoformat()
 
     return Sweepstakes(**jsondata)
+
+
+def refresh_sweepstake(
+    client: BetfairClient, sweepstake_db: db_models.Sweepstakes
+) -> db_models.Sweepstakes:
+    """
+    Refresh the sweepstake by re-fetching the market data and updating the participants.
+    """
+
+    latest_data = get_selections(client, sweepstake_db.market_id, False)
+    if not latest_data:
+        raise MarketNotFoundException(
+            f"Market not found for market_id {sweepstake_db.market_id}."
+        )
+
+    for participant in sweepstake_db.participants:
+        logging.info(f"Refreshing participant: {participant.name}")
+        # Update each participant's runners with the latest data
+        updated_runners: list[db_models.Runner] = []
+        seen = set()
+        for runner in participant.runners:
+            # Find the latest runner data
+            if runner.provider_id in seen:
+                continue
+
+            seen.add(runner.provider_id)
+            latest_runner = next(
+                (r for r in latest_data if r.provider_id == runner.provider_id), None
+            )
+            if latest_runner:
+                updated_runner = db_models.Runner(
+                    name=latest_runner.name,
+                    probability=latest_runner.implied_probability,
+                    provider_id=latest_runner.provider_id,
+                    participant=participant,
+                )
+            else:
+                # If the runner is not found in the latest data, keep the old one but assume probability is 0
+                logging.warning(
+                    f"Runner {runner.name} with provider_id {runner.provider_id} not found in latest data."
+                )
+                updated_runner = db_models.Runner(
+                    name=runner.name,
+                    probability=0,
+                    provider_id=runner.provider_id,
+                    participant=participant,
+                )
+
+            updated_runners.append(updated_runner)
+
+        participant.runners = updated_runners
+
+        # Recalculate equity based on updated runners
+        participant.equity = sum(runner.probability for runner in updated_runners)
+
+    sweepstake_db.updated_at = datetime.datetime.now(datetime.timezone.utc)
+    logging.info(f"Refreshed sweepstake: {sweepstake_db.id}")
+    return sweepstake_db

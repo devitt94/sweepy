@@ -103,7 +103,7 @@ def compute_market_probabilities(runners: list[Runner]) -> list[RunnerOdds]:
     """
 
     market_overround = Decimal(0)
-    runner_probabilities = []
+    runner_probabilities: list[tuple[Runner, Decimal]] = []
     for runner in runners:
         implied_probability = calculate_implied_probability(
             back_availability=runner.available_to_back,

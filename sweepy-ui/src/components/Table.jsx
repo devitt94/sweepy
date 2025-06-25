@@ -1,16 +1,43 @@
 
 import React, { useState } from 'react';
 
-function Table({data}) {
+function Table({data, refreshSweepstake}) {
     const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
 
     const toggleRow = (index) => {
         setExpandedRow(expandedRow === index ? null : index);
     };
 
+    const refreshHandler = () => {
+        refreshSweepstake(data.id);
+    };
+
+    const humanizeDate = (dateString) => {
+        const date = new Date(dateString);
+        const humanReadable = date.toLocaleString(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false, // or false for 24h format
+        });
+        return humanReadable;
+    }
+
     return (
         <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-2">{data.name}</h2>
+            <h2 className="text-lg font-semibold mb-2">{data.name} (ID: {data.id})</h2>
+             <button
+                type="button"
+                onClick={refreshHandler}
+                className="mb-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                title="Refresh"
+            >Refresh</button>
+            <p className="text-gray-600 mb-4">
+                Last refresh: {humanizeDate(data.updated_at)}
+            </p>
             <div className="overflow-x-auto">
             <table className="min-w-full border rounded-lg">
                 <thead className="bg-gray-100">

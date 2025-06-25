@@ -8,7 +8,7 @@ class PriceSize(BaseModel):
 
 
 class Runner(BaseModel):
-    runner_id: int
+    runner_id: str
     name: str
     available_to_back: list[PriceSize]
     available_to_lay: list[PriceSize]
