@@ -18,7 +18,7 @@ function SweepstakesList({ sweepstakes, showSweepstakes }) {
                         <tr key={index} className="cursor-pointer" onClick={() => showSweepstakes(p.id)}>
                             <td className="px-4 py-2">{p.id}</td>
                             <td className="px-4 py-2">{p.name}</td>
-                            <td className="px-4 py-2">{p.participants_count}</td>
+                            <td className="px-4 py-2">{p.participants.length}</td>
                             <td className="px-4 py-2">Active</td>
                         </tr>
 
