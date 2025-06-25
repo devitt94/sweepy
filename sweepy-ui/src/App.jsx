@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import CreateForm from './components/CreateForm';
-import SweepstakesList from './components/SweepstakesList';
 import Table from './components/Table';
-import Menu from './components/Menu';
+import Home from './components/Home';
 import ApiClient from './Api';
 
 const App = () => {
   const [error, setError] = useState(null);
-  const [displayMenu, setDisplayMenu] = useState(true);
-  const [displaySearchForm, setDisplaySearchForm] = useState(false);
+  const [displayHome, setDisplayHome] = useState(true);
   const [displayCreateForm, setDisplayCreateForm] = useState(false);
   const [sweepstake, setSweepstake] = useState(null);
   const [allSweepstakes, setAllSweepstakes] = useState([]);
@@ -32,9 +30,8 @@ const App = () => {
   const handleCreateApiResponse = (responseData) => {
     setError(null);
     setSweepstake(responseData);
-    setDisplayMenu(false);
+    setDisplayHome(false);
     setDisplayCreateForm(false);
-    setDisplaySearchForm(false);
     fetchAllSweepstakes();
   };
 
@@ -43,9 +40,8 @@ const App = () => {
       .then((data) => {
         setError(null);
         setSweepstake(data);
-        setDisplayMenu(false);
+        setDisplayHome(false);
         setDisplayCreateForm(false);
-        setDisplaySearchForm(false);
       })
       .catch((error) => {
         console.error('Error fetching sweepstake:', error);
@@ -71,7 +67,7 @@ const App = () => {
             setError(null);
             setSweepstake(null);
             fetchAllSweepstakes();
-            setDisplayMenu(true);
+            setDisplayHome(true);
           })
           .catch((error) => {
             console.error('Error closing sweepstake:', error);
@@ -82,14 +78,17 @@ const App = () => {
 
   const mainComponent = () => {
     let component;
-    if (displayMenu) {
-      component = <Menu setDisplayCreateForm={setDisplayCreateForm} setDisplayMenu={setDisplayMenu} setDisplaySearchForm={setDisplaySearchForm}/>;
+    if (displayHome) {
+      component = <Home 
+        setDisplayCreateForm={setDisplayCreateForm} 
+        setDisplayHome={setDisplayHome} 
+        allSweepstakes={allSweepstakes} 
+        lookupSweepstake={lookupSweepstake}
+      />;
     } else if (displayCreateForm) {
       component = <CreateForm handleSubmitSuccess={handleCreateApiResponse} />;
     } else if (sweepstake) {
       component = <Table data={sweepstake} refreshSweepstake={refreshSweepstake} closeSweepstake={closeSweepstake}/>;
-    } else if (displaySearchForm) {
-      component = <SweepstakesList sweepstakes={allSweepstakes} showSweepstakes={lookupSweepstake}/>;
     }
 
     return (
@@ -106,9 +105,8 @@ const App = () => {
       <button
         className="absolute top-4 left-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
         onClick={() => {
-          setDisplayMenu(true);
+          setDisplayHome(true);
           setDisplayCreateForm(false);
-          setDisplaySearchForm(false);
           setSweepstake(null);
         }}
       >

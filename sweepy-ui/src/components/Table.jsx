@@ -1,11 +1,26 @@
 
 import React, { useState } from 'react';
 
+function timeAgo(timestamp) {
+  const now = new Date();
+  const past = new Date(timestamp);
+  const diff = Math.floor((now - past) / 1000);
+
+  if (diff < 60) return `${diff} seconds ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
+
+  // You can customize this further
+  return past.toLocaleDateString(); // Fallback: display the date
+}
+
+
 function Table({data, refreshSweepstake, closeSweepstake}) {
     const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
 
     const toggleRow = (index) => {
-        setExpandedRow(expandedRow === index ? null : index);
+        setExpandedRow(expandedRow === index ? null : index);   
     };
 
     const refreshHandler = () => {
@@ -16,24 +31,10 @@ function Table({data, refreshSweepstake, closeSweepstake}) {
         if (!window.confirm("Are you sure you want to close this sweepstake?")) {
             return;
         }
-        
+
         closeSweepstake(data.id);
     };
         
-
-    const humanizeDate = (dateString) => {
-        const date = new Date(dateString);
-        const humanReadable = date.toLocaleString(undefined, {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false, // or false for 24h format
-        });
-        return humanReadable;
-    }
 
     return (
         <div className="mt-6">
@@ -51,7 +52,7 @@ function Table({data, refreshSweepstake, closeSweepstake}) {
                 title="Close"
             >Close</button>
             <p className="text-gray-600 mb-4">
-                Last refresh: {humanizeDate(data.updated_at)}
+                Last refresh: {timeAgo(data.updated_at)}
             </p>
             <div className="overflow-x-auto">
             <table className="min-w-full border rounded-lg">

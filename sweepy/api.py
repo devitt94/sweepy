@@ -35,7 +35,11 @@ async def lifespan(app: FastAPI):
 
     logging.info("Betfair client initialized.")
 
-    init_db()
+    recreate_db = (
+        os.getenv("RECREATE_DB", "false").lower() == "true"
+        or os.getenv("ENVIRONMENT") == "development"
+    )
+    init_db(recreate=recreate_db)
     logging.info("Database initialized.")
 
     yield
