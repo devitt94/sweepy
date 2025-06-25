@@ -1,7 +1,7 @@
 import datetime
 from hashids import Hashids
 from typing import List, Optional
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Column, DateTime, SQLModel, Field, Relationship
 
 hashids = Hashids(
     min_length=4, salt="sweepy_salt", alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -15,6 +15,7 @@ class Sweepstakes(SQLModel, table=True):
     method: str
     active: bool
     updated_at: datetime.datetime = Field(
+        sa_column=Column(DateTime(timezone=True)),
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
     participants: List["Participant"] = Relationship(back_populates="sweepstake")

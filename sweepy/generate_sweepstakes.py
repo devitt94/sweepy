@@ -89,6 +89,7 @@ def generate_sweepstakes(
         method=request.method,
         participants=[],
         active=True,
+        updated_at=datetime.datetime.now(datetime.timezone.utc),
     )
 
     for participant_name, selections in sweepstake_assignments.items():
@@ -148,8 +149,11 @@ def convert_db_model_to_response(
 
     jsondata["participants"] = participants
     jsondata["updated_at"] = sweepstakes_db.updated_at.isoformat()
+    # logging.info(
+    #     f"Converting sweepstake {sweepstakes_db.id} to response model, {jsondata=}"
+    # )
     logging.info(
-        f"Converting sweepstake {sweepstakes_db.id} to response model, {jsondata=}"
+        f"Updated at timestamp : {sweepstakes_db.updated_at.isoformat()} {sweepstakes_db.updated_at.tzinfo}"
     )
 
     return Sweepstakes(**jsondata)
