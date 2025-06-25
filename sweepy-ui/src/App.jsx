@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CreateForm from './components/CreateForm';
-import SearchForm from './components/SearchForm';
+import SweepstakesList from './components/SweepstakesList';
 import Table from './components/Table';
 import Menu from './components/Menu';
+import ApiClient from './Api';
 
 const App = () => {
   const [error, setError] = useState(null);
@@ -10,23 +11,35 @@ const App = () => {
   const [displaySearchForm, setDisplaySearchForm] = useState(false);
   const [displayCreateForm, setDisplayCreateForm] = useState(false);
   const [sweepstake, setSweepstake] = useState(null);
+  const [allSweepstakes, setAllSweepstakes] = useState([]);
 
-  const handleApiResponse = (responseData) => {
+  const apiClient = new ApiClient();
+
+  const fetchAllSweepstakes = () => {
+    apiClient.getAllSweepstakes().then((data) => {
+        setAllSweepstakes(data);
+        setError(null);
+      })
+      .catch((error) => {
+        setError('Failed to fetch sweepstakes');
+      });
+  };
+
+  useEffect(() => {
+    fetchAllSweepstakes();
+  }, []);
+
+  const handleCreateApiResponse = (responseData) => {
     setError(null);
     setSweepstake(responseData);
     setDisplayMenu(false);
     setDisplayCreateForm(false);
     setDisplaySearchForm(false);
+    fetchAllSweepstakes();
   };
 
   const lookupSweepstake = (id) => {
-    fetch(`/api/sweepstakes/${id}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
+    apiClient.getSweepstake(id)
       .then((data) => {
         setError(null);
         setSweepstake(data);
@@ -40,20 +53,29 @@ const App = () => {
       });
   }
 
+    const refreshSweepstake = async (id) => {
+        apiClient.refreshSweepstake(id)
+          .then((data) => {
+            setError(null);
+            setSweepstake(data);
+          })
+          .catch((error) => {
+            console.error('Error refreshing sweepstake:', error);
+            setError(`Failed to refresh sweepstake with ID ${id}`);
+          }); 
+    };
+    
+
   const mainComponent = () => {
     let component;
     if (displayMenu) {
-      console.log("Rendering Menu");
       component = <Menu setDisplayCreateForm={setDisplayCreateForm} setDisplayMenu={setDisplayMenu} setDisplaySearchForm={setDisplaySearchForm}/>;
     } else if (displayCreateForm) {
-      console.log("Rendering Create Form");
-      component = <CreateForm handleSubmitSuccess={handleApiResponse} />;
-    } else if (displaySearchForm) {
-      console.log("Rendering Search Form");
-      component = <SearchForm lookupSweepstake={lookupSweepstake}/>;
+      component = <CreateForm handleSubmitSuccess={handleCreateApiResponse} />;
     } else if (sweepstake) {
-      console.log("Rendering Table");
-      component = <Table data={sweepstake} />;
+      component = <Table data={sweepstake} refreshSweepstake={refreshSweepstake}/>;
+    } else if (displaySearchForm) {
+      component = <SweepstakesList sweepstakes={allSweepstakes} showSweepstakes={lookupSweepstake}/>;
     }
 
     return (
