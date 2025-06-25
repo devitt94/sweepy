@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import datetime
 import logging
 import os
 import dotenv
@@ -98,12 +99,18 @@ def create_sweepstakes(
 
 @app.get("/api/sweepstakes", response_model=list[Sweepstakes])
 def list_sweepstakes(
+    include_closed: bool = False,
     session: Session = Depends(get_session),
 ) -> list[Sweepstakes]:
     """
     List all sweepstakes, optionally filtered by market_id and method.
     """
-    query = select(db_models.Sweepstakes).limit(10)
+    query = select(db_models.Sweepstakes)
+    if not include_closed:
+        query = query.where(db_models.Sweepstakes.active)
+
+    # TODO: Add proper pagination support
+    query = query.limit(25)
 
     all_sweepstakes = session.exec(query).all()
 
@@ -159,6 +166,11 @@ def refresh_sweepstake(
     if not sweepstake:
         raise HTTPException(status_code=404, detail="Sweepstake not found")
 
+    if not sweepstake.active:
+        raise HTTPException(
+            status_code=400, detail="Sweepstake is not active and cannot be refreshed"
+        )
+
     logging.info(f"Refreshing sweepstake: {sweepstake.stringified_id}")
 
     updated_sweepstake = generate_sweepstakes.refresh_sweepstake(
@@ -172,5 +184,45 @@ def refresh_sweepstake(
     resp = generate_sweepstakes.convert_db_model_to_response(updated_sweepstake)
 
     logging.info(f"Sweepstake refreshed: {updated_sweepstake.stringified_id}")
+
+    return resp
+
+
+@app.post("/api/sweepstakes/{sweepstake_id}/close", response_model=Sweepstakes)
+def close_sweepstake(
+    sweepstake_id: int | str, session: Session = Depends(get_session)
+) -> Sweepstakes:
+    """
+    Close a specific sweepstake by ID.
+    """
+
+    if isinstance(sweepstake_id, str):
+        sweepstake_id = db_models.Sweepstakes.decode_stringified_id(sweepstake_id)
+        if sweepstake_id is None:
+            raise HTTPException(status_code=400, detail="Invalid sweepstake ID format")
+
+    sweepstake = session.get(db_models.Sweepstakes, sweepstake_id)
+
+    if not sweepstake:
+        raise HTTPException(status_code=404, detail="Sweepstake not found")
+
+    logging.info(f"Closing sweepstake: {sweepstake.stringified_id}")
+
+    if not sweepstake.active:
+        raise HTTPException(status_code=400, detail="Sweepstake is already closed")
+
+    logging.info(f"Sweepstake data before closing: {sweepstake.model_dump_json()}")
+
+    sweepstake.active = False
+    sweepstake.updated_at = datetime.datetime.now(datetime.timezone.utc)
+    session.add(sweepstake)
+    session.commit()
+    session.refresh(sweepstake)
+
+    logging.info(f"Sweepstake data after closing: {sweepstake.model_dump_json()}")
+
+    resp = generate_sweepstakes.convert_db_model_to_response(sweepstake)
+
+    logging.info(f"Sweepstake closed: {sweepstake.stringified_id}")
 
     return resp

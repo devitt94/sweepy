@@ -70,4 +70,21 @@ export default class ApiClient {
         const data = await response.json();
         return data;
     };
+
+    async closeSweepstake(id) {
+        const url = `/api/sweepstakes/${id}/close`;
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    };
 }

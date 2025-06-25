@@ -44,4 +44,5 @@ class Sweepstakes(BaseModel):
     method: AssignmentMethod
     updated_at: datetime.datetime
     participants: list[Participant]
+    active: bool
     ignore_longshots: bool = False

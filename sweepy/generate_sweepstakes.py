@@ -88,6 +88,7 @@ def generate_sweepstakes(
         market_id=request.market_id,
         method=request.method,
         participants=[],
+        active=True,
     )
 
     for participant_name, selections in sweepstake_assignments.items():
@@ -147,6 +148,9 @@ def convert_db_model_to_response(
 
     jsondata["participants"] = participants
     jsondata["updated_at"] = sweepstakes_db.updated_at.isoformat()
+    logging.info(
+        f"Converting sweepstake {sweepstakes_db.id} to response model, {jsondata=}"
+    )
 
     return Sweepstakes(**jsondata)
 
