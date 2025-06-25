@@ -97,25 +97,38 @@ def create_sweepstakes(
 
 
 @app.get("/api/sweepstakes", response_model=list[Sweepstakes])
-def list_sweepstakes(session: Session = Depends(get_session)) -> list[Sweepstakes]:
-    all_sweepstakes = session.exec(select(db_models.Sweepstakes)).all()
+def list_sweepstakes(
+    session: Session = Depends(get_session),
+) -> list[Sweepstakes]:
+    """
+    List all sweepstakes, optionally filtered by market_id and method.
+    """
+    query = select(db_models.Sweepstakes).limit(10)
+
+    all_sweepstakes = session.exec(query).all()
 
     resp = [
         generate_sweepstakes.convert_db_model_to_response(sweepstake)
         for sweepstake in all_sweepstakes
     ]
 
-    logging.info(f"Listing all sweepstakes: {len(resp)} found")
+    logging.info(f"Listing sweepstakes: {len(resp)} found")
+
     return resp
 
 
 @app.get("/api/sweepstakes/{sweepstake_id}", response_model=Sweepstakes)
 def get_sweepstake(
-    sweepstake_id: int, session: Session = Depends(get_session)
+    sweepstake_id: int | str, session: Session = Depends(get_session)
 ) -> Sweepstakes:
     """
     Get a specific sweepstake by ID.
     """
+    if isinstance(sweepstake_id, str):
+        sweepstake_id = db_models.Sweepstakes.decode_stringified_id(sweepstake_id)
+        if sweepstake_id is None:
+            raise HTTPException(status_code=400, detail="Invalid sweepstake ID format")
+
     sweepstake = session.get(db_models.Sweepstakes, sweepstake_id)
 
     if not sweepstake:
@@ -124,5 +137,40 @@ def get_sweepstake(
     resp = generate_sweepstakes.convert_db_model_to_response(sweepstake)
 
     logging.info(f"Retrieved sweepstake: {sweepstake.id}")
+
+    return resp
+
+
+@app.post("/api/sweepstakes/{sweepstake_id}/refresh", response_model=Sweepstakes)
+def refresh_sweepstake(
+    sweepstake_id: int | str, session: Session = Depends(get_session)
+) -> Sweepstakes:
+    """
+    Refresh a specific sweepstake by ID.
+    """
+
+    if isinstance(sweepstake_id, str):
+        sweepstake_id = db_models.Sweepstakes.decode_stringified_id(sweepstake_id)
+        if sweepstake_id is None:
+            raise HTTPException(status_code=400, detail="Invalid sweepstake ID format")
+
+    sweepstake = session.get(db_models.Sweepstakes, sweepstake_id)
+
+    if not sweepstake:
+        raise HTTPException(status_code=404, detail="Sweepstake not found")
+
+    logging.info(f"Refreshing sweepstake: {sweepstake.stringified_id}")
+
+    updated_sweepstake = generate_sweepstakes.refresh_sweepstake(
+        __bf_client, sweepstake
+    )
+
+    session.add(updated_sweepstake)
+    session.commit()
+    session.refresh(updated_sweepstake)
+
+    resp = generate_sweepstakes.convert_db_model_to_response(updated_sweepstake)
+
+    logging.info(f"Sweepstake refreshed: {updated_sweepstake.stringified_id}")
 
     return resp
