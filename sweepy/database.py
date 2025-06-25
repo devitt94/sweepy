@@ -19,8 +19,8 @@ engine = create_engine(
 )
 
 
-def init_db():
-    if os.getenv("ENVIRONMENT") == "development":
+def init_db(recreate: bool = False):
+    if recreate:
         SQLModel.metadata.drop_all(engine)
 
     SQLModel.metadata.create_all(engine)
@@ -28,3 +28,8 @@ def init_db():
 
 def get_session():
     return Session(engine)
+
+
+if __name__ == "__main__":
+    init_db(recreate=True)
+    print("Database initialized.")
