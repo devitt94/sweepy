@@ -64,6 +64,20 @@ const App = () => {
             setError(`Failed to refresh sweepstake with ID ${id}`);
           }); 
     };
+
+    const closeSweepstake = async (id) => {
+        apiClient.closeSweepstake(id)
+          .then(() => {
+            setError(null);
+            setSweepstake(null);
+            fetchAllSweepstakes();
+            setDisplayMenu(true);
+          })
+          .catch((error) => {
+            console.error('Error closing sweepstake:', error);
+            setError(`Failed to close sweepstake with ID ${id}`);
+          });
+    };
     
 
   const mainComponent = () => {
@@ -73,7 +87,7 @@ const App = () => {
     } else if (displayCreateForm) {
       component = <CreateForm handleSubmitSuccess={handleCreateApiResponse} />;
     } else if (sweepstake) {
-      component = <Table data={sweepstake} refreshSweepstake={refreshSweepstake}/>;
+      component = <Table data={sweepstake} refreshSweepstake={refreshSweepstake} closeSweepstake={closeSweepstake}/>;
     } else if (displaySearchForm) {
       component = <SweepstakesList sweepstakes={allSweepstakes} showSweepstakes={lookupSweepstake}/>;
     }

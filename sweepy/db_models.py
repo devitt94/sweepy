@@ -13,6 +13,7 @@ class Sweepstakes(SQLModel, table=True):
     name: str
     market_id: str
     method: str
+    active: bool
     updated_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc),
     )

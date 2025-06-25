@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 
-function Table({data, refreshSweepstake}) {
+function Table({data, refreshSweepstake, closeSweepstake}) {
     const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
 
     const toggleRow = (index) => {
@@ -11,6 +11,15 @@ function Table({data, refreshSweepstake}) {
     const refreshHandler = () => {
         refreshSweepstake(data.id);
     };
+
+    const closeHandler = () => {
+        if (!window.confirm("Are you sure you want to close this sweepstake?")) {
+            return;
+        }
+        
+        closeSweepstake(data.id);
+    };
+        
 
     const humanizeDate = (dateString) => {
         const date = new Date(dateString);
@@ -35,6 +44,12 @@ function Table({data, refreshSweepstake}) {
                 className="mb-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                 title="Refresh"
             >Refresh</button>
+            <button
+                type="button"
+                onClick={closeHandler}
+                className="mb-4 ml-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                title="Close"
+            >Close</button>
             <p className="text-gray-600 mb-4">
                 Last refresh: {humanizeDate(data.updated_at)}
             </p>
