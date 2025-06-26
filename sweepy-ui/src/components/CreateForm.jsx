@@ -41,7 +41,7 @@ function CreateFrom({handleSubmitSuccess}) {
       });
 
       setFormData({ ...defaultFormData }); // Reset form data
-      
+
     } catch (err) {
       console.error("Error creating sweepstake:", err.stack);
       setError(err.message);

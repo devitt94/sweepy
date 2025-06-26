@@ -20,7 +20,7 @@ function Table({data, refreshSweepstake, closeSweepstake}) {
     const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
 
     const toggleRow = (index) => {
-        setExpandedRow(expandedRow === index ? null : index);   
+        setExpandedRow(expandedRow === index ? null : index);
     };
 
     const refreshHandler = () => {
@@ -34,7 +34,7 @@ function Table({data, refreshSweepstake, closeSweepstake}) {
 
         closeSweepstake(data.id);
     };
-        
+
 
     return (
         <div className="mt-6">

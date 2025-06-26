@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - test-deploy
-    
+
 jobs:
   deploy:
     name: Build and Deploy to Heroku
@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
