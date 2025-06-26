@@ -18,3 +18,10 @@ repos:
     - id: check-json
     - id: check-ast
     - id: check-yaml
+- repo: local
+  hooks:
+    - id: eslint
+      name: eslint
+      entry: npx eslint sweepy-ui --fix
+      language: node
+      types: [javascript, jsx, ts, tsx]
