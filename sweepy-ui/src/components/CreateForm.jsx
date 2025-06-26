@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
+const defaultFormData = {
+  market_id: "",
+  method: "tiered",
+  name: "",
+  participants: ["", "", ""],
+};
+
 function CreateFrom({handleSubmitSuccess}) {
-  const [formData, setFormData] = useState({
-    market_id: "",
-    method: "tiered",
-    name: "",
-    participants: [""],
-  });
+  const [formData, setFormData] = useState({...defaultFormData});
 
   const [error, setError] = useState(null);
 
@@ -38,12 +40,7 @@ function CreateFrom({handleSubmitSuccess}) {
         participants: sortedParticipants, // Use sorted participants
       });
 
-      setFormData({
-        market_id: "",
-        method: "tiered",
-        name: "",
-        participants: [""],
-      });
+      setFormData({ ...defaultFormData }); // Reset form data
       
     } catch (err) {
       console.error("Error creating sweepstake:", err.stack);
