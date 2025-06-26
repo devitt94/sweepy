@@ -16,7 +16,10 @@ function Home({ setDisplayHome, setDisplayCreateForm, allSweepstakes, lookupSwee
       >
         Create New Sweepstakes
       </button>
+      {allSweepstakes.length > 0 ? 
       <SweepstakesList sweepstakes={allSweepstakes} showSweepstakes={lookupSweepstake}/>
+        : <p className="text-gray-500">No sweepstakes available. Please create one.</p>
+      }
     </div>
   );
 }
