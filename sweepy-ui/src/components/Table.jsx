@@ -1,18 +1,37 @@
 
 import React, { useState } from 'react';
 
+const SECONDS_IN_MINUTE = 60;
+const SECONDS_IN_HOUR = 3600;
+const SECONDS_IN_DAY = 86400;
+
+
 function timeAgo(timestamp) {
   const now = new Date();
   const past = new Date(timestamp);
   const diff = Math.floor((now - past) / 1000);
+  let normalizedDiff;
+  let unit;
 
-  if (diff < 60) return `${diff} seconds ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
+  if (diff < SECONDS_IN_MINUTE) {
+    unit = 'second';
+    normalizedDiff = diff;
+  } else if (diff < SECONDS_IN_HOUR) {
+    unit = 'minute';
+    normalizedDiff = Math.floor(diff / SECONDS_IN_MINUTE);
+  } else if (diff < SECONDS_IN_DAY) {
+    unit = 'hour';
+    normalizedDiff = Math.floor(diff / SECONDS_IN_HOUR);
+  } else {
+    unit = 'day';
+    normalizedDiff = Math.floor(diff / SECONDS_IN_DAY);
+  }
 
-  // You can customize this further
-  return past.toLocaleDateString(); // Fallback: display the date
+  if (normalizedDiff === 1) {
+    return `${normalizedDiff} ${unit} ago`;
+  } else {
+    return `${normalizedDiff} ${unit}s ago`;
+  }
 }
 
 
