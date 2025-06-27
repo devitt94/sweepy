@@ -22,6 +22,6 @@ repos:
   hooks:
     - id: eslint
       name: eslint
-      entry: npx eslint sweepy-ui --fix
-      language: node
-      types: [javascript, jsx, ts, tsx]
+      entry: bash -c 'cd sweepy-ui && npx eslint .'
+      language: system
+      files: ^sweepy-ui/src/.*\.(js|jsx|ts|tsx)$
