@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import CreateForm from './components/CreateForm';
-import Table from './components/Table';
-import Home from './components/Home';
-import ApiClient from './Api';
+import { useState, useEffect } from "react";
+import CreateForm from "./components/CreateForm";
+import Table from "./components/Table";
+import Home from "./components/Home";
+import ApiClient from "./Api";
 
 const App = () => {
   const [error, setError] = useState(null);
@@ -15,22 +15,26 @@ const App = () => {
   const apiClient = new ApiClient();
 
   const fetchAllSweepstakes = () => {
-    apiClient.getAllSweepstakes().then((data) => {
+    apiClient
+      .getAllSweepstakes()
+      .then((data) => {
         setAllSweepstakes(data);
         setError(null);
       })
       .catch((error) => {
-        setError('Failed to fetch sweepstakes');
+        setError("Failed to fetch sweepstakes");
       });
   };
 
   const fetchEventTypes = () => {
-    apiClient.getEventTypes().then((data) => {
+    apiClient
+      .getEventTypes()
+      .then((data) => {
         setEventTypes(data);
         setError(null);
       })
       .catch((error) => {
-        setError('Failed to fetch event types');
+        setError("Failed to fetch event types");
       });
   };
 
@@ -48,7 +52,8 @@ const App = () => {
   };
 
   const lookupSweepstake = (id) => {
-    apiClient.getSweepstake(id)
+    apiClient
+      .getSweepstake(id)
       .then((data) => {
         setError(null);
         setSweepstake(data);
@@ -56,64 +61,80 @@ const App = () => {
         setDisplayCreateForm(false);
       })
       .catch((error) => {
-        console.error('Error fetching sweepstake:', error);
+        console.error("Error fetching sweepstake:", error);
         setError(`Could not find sweepstake with that ID (${id})`);
       });
-  }
+  };
 
-    const refreshSweepstake = async (id) => {
-        apiClient.refreshSweepstake(id)
-          .then((data) => {
-            setError(null);
-            setSweepstake(data);
-          })
-          .catch((error) => {
-            console.error('Error refreshing sweepstake:', error);
-            setError(`Failed to refresh sweepstake with ID ${id}`);
-          });
-    };
+  const refreshSweepstake = async (id) => {
+    apiClient
+      .refreshSweepstake(id)
+      .then((data) => {
+        setError(null);
+        setSweepstake(data);
+      })
+      .catch((error) => {
+        console.error("Error refreshing sweepstake:", error);
+        setError(`Failed to refresh sweepstake with ID ${id}`);
+      });
+  };
 
-    const closeSweepstake = async (id) => {
-        apiClient.closeSweepstake(id)
-          .then(() => {
-            setError(null);
-            setSweepstake(null);
-            fetchAllSweepstakes();
-            setDisplayHome(true);
-          })
-          .catch((error) => {
-            console.error('Error closing sweepstake:', error);
-            setError(`Failed to close sweepstake with ID ${id}`);
-          });
-    };
+  const closeSweepstake = async (id) => {
+    apiClient
+      .closeSweepstake(id)
+      .then(() => {
+        setError(null);
+        setSweepstake(null);
+        fetchAllSweepstakes();
+        setDisplayHome(true);
+      })
+      .catch((error) => {
+        console.error("Error closing sweepstake:", error);
+        setError(`Failed to close sweepstake with ID ${id}`);
+      });
+  };
 
-    const getMarkets = (eventType) => {
-        return apiClient.getMarkets(eventType)
-          .then((data) => {
-            setError(null);
-            return data;
-          })
-          .catch((error) => {
-            console.error('Error fetching markets:', error);
-            setError(`Failed to fetch markets for event type ${eventType}`);
-            return [];
-          });
-    };
-
+  const getMarkets = (eventType) => {
+    return apiClient
+      .getMarkets(eventType)
+      .then((data) => {
+        setError(null);
+        return data;
+      })
+      .catch((error) => {
+        console.error("Error fetching markets:", error);
+        setError(`Failed to fetch markets for event type ${eventType}`);
+        return [];
+      });
+  };
 
   const mainComponent = () => {
     let component;
     if (displayHome) {
-      component = <Home
-        setDisplayCreateForm={setDisplayCreateForm}
-        setDisplayHome={setDisplayHome}
-        allSweepstakes={allSweepstakes}
-        lookupSweepstake={lookupSweepstake}
-      />;
+      component = (
+        <Home
+          setDisplayCreateForm={setDisplayCreateForm}
+          setDisplayHome={setDisplayHome}
+          allSweepstakes={allSweepstakes}
+          lookupSweepstake={lookupSweepstake}
+        />
+      );
     } else if (displayCreateForm) {
-      component = <CreateForm eventTypes={eventTypes} fetchMarkets={getMarkets} handleSubmitSuccess={handleCreateApiResponse} />;
+      component = (
+        <CreateForm
+          eventTypes={eventTypes}
+          fetchMarkets={getMarkets}
+          handleSubmitSuccess={handleCreateApiResponse}
+        />
+      );
     } else if (sweepstake) {
-      component = <Table data={sweepstake} refreshSweepstake={refreshSweepstake} closeSweepstake={closeSweepstake}/>;
+      component = (
+        <Table
+          data={sweepstake}
+          refreshSweepstake={refreshSweepstake}
+          closeSweepstake={closeSweepstake}
+        />
+      );
     }
 
     return (
@@ -122,10 +143,9 @@ const App = () => {
         {component}
       </div>
     );
-  }
+  };
 
   return (
-
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <button
         className="absolute top-4 left-4 bg-blue-500 text-white px-4 py-2 rounded-lg"

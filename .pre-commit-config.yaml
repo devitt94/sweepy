@@ -25,3 +25,8 @@ repos:
       entry: bash -c 'cd sweepy-ui && npx eslint .'
       language: system
       files: ^sweepy-ui/src/.*\.(js|jsx|ts|tsx)$
+    - id: prettier
+      name: prettier
+      entry: bash -c 'cd sweepy-ui && npx prettier --write .'
+      language: system
+      files: ^sweepy-ui/src/.*\.(js|jsx|ts|tsx)$
