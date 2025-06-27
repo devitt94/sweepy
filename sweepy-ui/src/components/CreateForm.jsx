@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 const defaultFormData = {
@@ -8,15 +8,17 @@ const defaultFormData = {
   participants: ["", "", ""],
 };
 
-function CreateFrom({handleSubmitSuccess}) {
+function CreateForm({eventTypes, fetchMarkets, handleSubmitSuccess}) {
   const [formData, setFormData] = useState({...defaultFormData});
-
+  const [selectedEventType, setSelectedEventType] = useState("");
+  const [markets, setMarkets] = useState([]);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,20 +50,66 @@ function CreateFrom({handleSubmitSuccess}) {
     }
   };
 
+  useEffect(() => {
+    if (!selectedEventType) {
+      setMarkets([]);
+      return;
+    }
+    fetchMarkets(selectedEventType)
+      .then((data) => {
+        setMarkets(data);
+      })
+      .catch((err) => {
+        console.error("Error fetching markets:", err);
+        setError("Failed to fetch markets for the selected event type.");
+      });
+  }, [selectedEventType]);
+
+  const handleEventTypeChange = (e) => {
+    const eventType = e.target.value;
+    setSelectedEventType(eventType);
+    setFormData((prev) => ({ ...prev, market_id: "" }));
+  };
+
+
   return (
 
       <div>
         <h1 className="text-2xl font-bold mb-6">Create a Sweepstakes</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
+          {/* # event type selection dropdown */}
+          <label className="block font-medium mb-1">Event Type</label>
+          <select
+            name="event_type"
+            value={formData.event_type}
+            onChange={handleEventTypeChange}
+            className="w-full p-2 border rounded"
+            required
+            >
+              <option value="" selected>Select Event Type</option>
+              {eventTypes.map((eventType) => (
+                <option key={eventType.id} value={eventType.id}>
+                  {eventType.name}
+                </option>
+              ))}
+            </select>
+          {/* Market selection dropdown */}
+          <label className="block font-medium mb-1">Market</label>
+          <select
             name="market_id"
-            placeholder="Market ID"
             value={formData.market_id}
             onChange={handleChange}
             className="w-full p-2 border rounded"
             required
-          />
+          >
+            <option key="empty" value="" selected>Select Market</option>
+            {markets.map((market) => (
+              console.log("Rendering option for market:", market),
+              <option key={market.market_id} value={market.market_id}>
+                {market.competition_name} - {market.market_name}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
             name="name"
@@ -144,4 +192,4 @@ function CreateFrom({handleSubmitSuccess}) {
   );
 }
 
-export default CreateFrom;
+export default CreateForm;

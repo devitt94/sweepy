@@ -87,4 +87,38 @@ export default class ApiClient {
         const data = await response.json();
         return data;
     };
+
+    async getEventTypes() {
+        const url = '/api/event-types';
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    };
+
+    async getMarkets(eventType) {
+        const url = `/api/markets/${eventType}`;
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    }
 }
