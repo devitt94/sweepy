@@ -77,3 +77,44 @@ class BetfairClient:
         response.raise_for_status()
         response_data = response.json()
         return response_data[0]
+
+    def get_event_types(self) -> list[dict]:
+        url = f"{self.BASE_SPORTS_URL}listEventTypes/"
+        response = requests.post(
+            url,
+            headers=self.__headers(),
+            json={
+                "filter": {},
+                "maxResults": 100,
+            },
+        )
+        response.raise_for_status()
+
+        return [item["eventType"] for item in response.json()]
+
+    def get_outright_markets(self, event_type_id: str) -> list[dict]:
+        url = f"{self.BASE_SPORTS_URL}listMarketCatalogue/"
+        response = requests.post(
+            url,
+            headers=self.__headers(),
+            json={
+                "filter": {
+                    "eventTypeIds": [event_type_id],
+                    "marketTypeCodes": ["WINNER"],
+                },
+                "maxResults": 25,
+                "marketProjection": ["EVENT", "COMPETITION"],
+            },
+        )
+        response.raise_for_status()
+
+        return [
+            {
+                "market_id": market["marketId"],
+                "market_name": market["marketName"],
+                "event_name": market["event"]["name"],
+                "competition_name": market["competition"]["name"],
+            }
+            for market in response.json()
+            if "event" in market and "competition" in market
+        ]

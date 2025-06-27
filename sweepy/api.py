@@ -14,6 +14,7 @@ from sweepy import db_models
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.models import SweepstakesRequest, Sweepstakes
 from sweepy import generate_sweepstakes
+from sweepy.models.api import EventType, MarketInfo
 
 dotenv.load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -230,3 +231,21 @@ def close_sweepstake(
     logging.info(f"Sweepstake closed: {sweepstake.stringified_id}")
 
     return resp
+
+
+@app.get("/api/event-types", response_model=list[EventType])
+def get_event_types():
+    """
+    Get a list of all event types available in Betfair.
+    """
+    event_types = __bf_client.get_event_types()
+    return [EventType(**event_type) for event_type in event_types]
+
+
+@app.get("/api/markets/{event_type_id}", response_model=list[MarketInfo])
+def get_outright_markets(event_type_id: str):
+    """
+    Get outright markets for a specific event type.
+    """
+    markets = __bf_client.get_outright_markets(event_type_id)
+    return [MarketInfo(**market) for market in markets]
