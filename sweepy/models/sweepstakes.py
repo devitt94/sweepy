@@ -46,3 +46,4 @@ class Sweepstakes(BaseModel):
     participants: list[Participant]
     active: bool
     ignore_longshots: bool = False
+    competition: str | None = None

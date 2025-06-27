@@ -56,6 +56,10 @@ function Table({ data, refreshSweepstake, closeSweepstake }) {
       <h2 className="text-lg font-semibold mb-2">
         {data.name} (ID: {data.id})
       </h2>
+      <p className="text-gray-600 mb-4">
+        Competition: {data.competition} | Participants:{" "}
+        {data.participants.length}
+      </p>
       <button
         type="button"
         onClick={refreshHandler}

@@ -6,6 +6,7 @@ function SweepstakesList({ sweepstakes, showSweepstakes }) {
           <tr>
             <th className="px-4 py-2 text-left">ID</th>
             <th className="px-4 py-2 text-left">Name</th>
+            <th className="px-4 py-2 text-left">Competition</th>
             <th className="px-4 py-2 text-left">No. Participants</th>
             <th className="px-4 py-2 text-left">Status</th>
           </tr>
@@ -19,6 +20,7 @@ function SweepstakesList({ sweepstakes, showSweepstakes }) {
             >
               <td className="px-4 py-2">{p.id}</td>
               <td className="px-4 py-2">{p.name}</td>
+              <td className="px-4 py-2">{p.competition}</td>
               <td className="px-4 py-2">{p.participants.length}</td>
               <td className="px-4 py-2">Active</td>
             </tr>

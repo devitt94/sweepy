@@ -12,7 +12,7 @@ function Home({
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="w-auto p-4">
       <button
         type="button"
         onClick={handleCreateButtonClick()}

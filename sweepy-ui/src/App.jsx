@@ -157,7 +157,7 @@ const App = () => {
       >
         Home
       </button>
-      <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-xl">
+      <div className="mx-auto w-auto bg-white p-6 rounded-2xl shadow-xl">
         {mainComponent()}
       </div>
     </div>

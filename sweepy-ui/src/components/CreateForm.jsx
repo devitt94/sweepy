@@ -3,6 +3,7 @@ import axios from "axios";
 
 const defaultFormData = {
   market_id: "",
+  market_name: "",
   method: "tiered",
   name: "",
   participants: ["", "", ""],
@@ -19,6 +20,11 @@ function CreateForm({ eventTypes, fetchMarkets, handleSubmitSuccess }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const getMarketCompetitionName = (marketId) => {
+    const market = markets.find((m) => m.market_id === marketId);
+    return market ? `${market.competition_name} - ${market.market_name}` : "";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -27,6 +33,7 @@ function CreateForm({ eventTypes, fetchMarkets, handleSubmitSuccess }) {
       const payload = {
         ...formData,
         participant_names: formData.participants.filter((p) => p.trim() !== ""),
+        competition: getMarketCompetitionName(formData.market_id),
       };
 
       const res = await axios.post(`/api/sweepstakes`, payload);
@@ -103,16 +110,11 @@ function CreateForm({ eventTypes, fetchMarkets, handleSubmitSuccess }) {
           <option key="empty" value="" selected>
             Select Market
           </option>
-          {markets.map(
-            (market) => (
-              console.log("Rendering option for market:", market),
-              (
-                <option key={market.market_id} value={market.market_id}>
-                  {market.competition_name} - {market.market_name}
-                </option>
-              )
-            ),
-          )}
+          {markets.map((market) => (
+            <option key={market.market_id} value={market.market_id}>
+              {market.competition_name} - {market.market_name}
+            </option>
+          ))}
         </select>
         <input
           type="text"
