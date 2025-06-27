@@ -15,7 +15,7 @@ class SweepstakesRequest(BaseModel):
     ignore_longshots: bool = False
 
 
-class EventType(BaseModel):
+class EventType(BaseModel, frozen=True):
     """
     Model for the event type in the Betfair API.
     """
@@ -24,7 +24,7 @@ class EventType(BaseModel):
     name: str
 
 
-class MarketInfo(BaseModel):
+class MarketInfo(BaseModel, frozen=True):
     """
     Model for the market information in the Betfair API.
 
@@ -34,3 +34,9 @@ class MarketInfo(BaseModel):
     market_name: str
     event_name: str
     competition_name: str
+
+    def __eq__(self, other: "MarketInfo") -> bool:
+        if not isinstance(other, MarketInfo):
+            return NotImplemented
+
+        return self.market_id == other.market_id

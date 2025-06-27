@@ -10,6 +10,7 @@ const App = () => {
   const [displayCreateForm, setDisplayCreateForm] = useState(false);
   const [sweepstake, setSweepstake] = useState(null);
   const [allSweepstakes, setAllSweepstakes] = useState([]);
+  const [eventTypes, setEventTypes] = useState([]);
 
   const apiClient = new ApiClient();
 
@@ -23,7 +24,18 @@ const App = () => {
       });
   };
 
+  const fetchEventTypes = () => {
+    apiClient.getEventTypes().then((data) => {
+        setEventTypes(data);
+        setError(null);
+      })
+      .catch((error) => {
+        setError('Failed to fetch event types');
+      });
+  };
+
   useEffect(() => {
+    fetchEventTypes();
     fetchAllSweepstakes();
   }, []);
 
@@ -75,6 +87,19 @@ const App = () => {
           });
     };
 
+    const getMarkets = (eventType) => {
+        return apiClient.getMarkets(eventType)
+          .then((data) => {
+            setError(null);
+            return data;
+          })
+          .catch((error) => {
+            console.error('Error fetching markets:', error);
+            setError(`Failed to fetch markets for event type ${eventType}`);
+            return [];
+          });
+    };
+
 
   const mainComponent = () => {
     let component;
@@ -86,7 +111,7 @@ const App = () => {
         lookupSweepstake={lookupSweepstake}
       />;
     } else if (displayCreateForm) {
-      component = <CreateForm handleSubmitSuccess={handleCreateApiResponse} />;
+      component = <CreateForm eventTypes={eventTypes} fetchMarkets={getMarkets} handleSubmitSuccess={handleCreateApiResponse} />;
     } else if (sweepstake) {
       component = <Table data={sweepstake} refreshSweepstake={refreshSweepstake} closeSweepstake={closeSweepstake}/>;
     }
@@ -120,4 +145,3 @@ const App = () => {
 };
 
 export default App;
-console.log("App component loaded");

@@ -100,7 +100,12 @@ class BetfairClient:
             json={
                 "filter": {
                     "eventTypeIds": [event_type_id],
-                    "marketTypeCodes": ["WINNER"],
+                    "marketTypeCodes": [
+                        "WINNER",
+                        "TOURNAMENT_WINNER",
+                        "OUTRIGHT_WINNER",
+                        "NONSPORT",
+                    ],
                 },
                 "maxResults": 25,
                 "marketProjection": ["EVENT", "COMPETITION"],

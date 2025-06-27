@@ -248,4 +248,10 @@ def get_outright_markets(event_type_id: str):
     Get outright markets for a specific event type.
     """
     markets = __bf_client.get_outright_markets(event_type_id)
-    return [MarketInfo(**market) for market in markets]
+
+    logging.info(f"Found {len(markets)} markets for event type {event_type_id}")
+
+    deduplicated_markets = set([MarketInfo(**market) for market in markets])
+
+    logging.info(f"Deduplicated markets count: {len(deduplicated_markets)}")
+    return list(deduplicated_markets)
