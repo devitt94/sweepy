@@ -3,7 +3,7 @@
 function SweepstakesList({ sweepstakes, showSweepstakes }) {
 
     return (
-        <div className="mt-6"> 
+        <div className="mt-6">
             <table className="min-w-full border rounded-lg">
                 <thead className="bg-gray-100">
                 <tr>
@@ -26,7 +26,7 @@ function SweepstakesList({ sweepstakes, showSweepstakes }) {
 
                 </tbody>
             </table>
-        </div>  
+        </div>
     );
 };
 

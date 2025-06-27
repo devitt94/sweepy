@@ -58,7 +58,7 @@ const App = () => {
           .catch((error) => {
             console.error('Error refreshing sweepstake:', error);
             setError(`Failed to refresh sweepstake with ID ${id}`);
-          }); 
+          });
     };
 
     const closeSweepstake = async (id) => {
@@ -74,15 +74,15 @@ const App = () => {
             setError(`Failed to close sweepstake with ID ${id}`);
           });
     };
-    
+
 
   const mainComponent = () => {
     let component;
     if (displayHome) {
-      component = <Home 
-        setDisplayCreateForm={setDisplayCreateForm} 
-        setDisplayHome={setDisplayHome} 
-        allSweepstakes={allSweepstakes} 
+      component = <Home
+        setDisplayCreateForm={setDisplayCreateForm}
+        setDisplayHome={setDisplayHome}
+        allSweepstakes={allSweepstakes}
         lookupSweepstake={lookupSweepstake}
       />;
     } else if (displayCreateForm) {
@@ -100,7 +100,7 @@ const App = () => {
   }
 
   return (
-    
+
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <button
         className="absolute top-4 left-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
@@ -120,3 +120,4 @@ const App = () => {
 };
 
 export default App;
+console.log("App component loaded");

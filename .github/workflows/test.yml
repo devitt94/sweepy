@@ -24,8 +24,18 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install dependencies
+      - name: Install python dependencies
         run: poetry install
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Node.js dependencies
+        run: |
+          cd sweepy-ui
+          npm install
 
       - name: Run pre-commit
         run: poetry run pre-commit run --all-files

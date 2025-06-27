@@ -5,3 +5,23 @@ repos:
     - id: ruff
       args: [ --fix ]
     - id: ruff-format
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+    - id: check-merge-conflict
+    - id: check-case-conflict
+    - id: check-toml
+    - id: check-json
+    - id: check-ast
+    - id: check-yaml
+- repo: local
+  hooks:
+    - id: eslint
+      name: eslint
+      entry: bash -c 'cd sweepy-ui && npx eslint .'
+      language: system
+      files: ^sweepy-ui/src/.*\.(js|jsx|ts|tsx)$

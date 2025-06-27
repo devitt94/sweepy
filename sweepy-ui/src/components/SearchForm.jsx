@@ -14,7 +14,7 @@ function SearchForm({lookupSweepstake}) {
       }
     }
   };
-  
+
   return (
     <form className="search-form" onSubmit={onSearchSubmit}>
       <input
