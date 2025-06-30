@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-function SearchForm({lookupSweepstake}) {
-
-  const [searchTerm, setSearchTerm] = useState('');
+function SearchForm({ lookupSweepstake }) {
+  const [searchTerm, setSearchTerm] = useState("");
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
@@ -10,7 +9,7 @@ function SearchForm({lookupSweepstake}) {
       try {
         lookupSweepstake(searchTerm);
       } catch (error) {
-        console.error('Error looking up sweepstake:', error);
+        console.error("Error looking up sweepstake:", error);
       }
     }
   };

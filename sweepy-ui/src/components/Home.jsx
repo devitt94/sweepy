@@ -1,14 +1,18 @@
 import SweepstakesList from "./SweepstakesList";
 
-function Home({ setDisplayHome, setDisplayCreateForm, allSweepstakes, lookupSweepstake }) {
-
-    const handleCreateButtonClick = () => () => {
-        setDisplayHome(false);
-        setDisplayCreateForm(true);
-    };
+function Home({
+  setDisplayHome,
+  setDisplayCreateForm,
+  allSweepstakes,
+  lookupSweepstake,
+}) {
+  const handleCreateButtonClick = () => () => {
+    setDisplayHome(false);
+    setDisplayCreateForm(true);
+  };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="w-auto p-4">
       <button
         type="button"
         onClick={handleCreateButtonClick()}
@@ -16,10 +20,16 @@ function Home({ setDisplayHome, setDisplayCreateForm, allSweepstakes, lookupSwee
       >
         Create New Sweepstakes
       </button>
-      {allSweepstakes.length > 0 ?
-      <SweepstakesList sweepstakes={allSweepstakes} showSweepstakes={lookupSweepstake}/>
-        : <p className="text-gray-500">No sweepstakes available. Please create one.</p>
-      }
+      {allSweepstakes.length > 0 ? (
+        <SweepstakesList
+          sweepstakes={allSweepstakes}
+          showSweepstakes={lookupSweepstake}
+        />
+      ) : (
+        <p className="text-gray-500">
+          No sweepstakes available. Please create one.
+        </p>
+      )}
     </div>
   );
 }

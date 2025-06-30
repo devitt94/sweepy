@@ -90,6 +90,7 @@ def generate_sweepstakes(
         participants=[],
         active=True,
         updated_at=datetime.datetime.now(datetime.timezone.utc),
+        competition=request.competition,
     )
 
     for participant_name, selections in sweepstake_assignments.items():

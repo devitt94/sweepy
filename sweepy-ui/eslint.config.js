@@ -18,7 +18,7 @@ export default [
       // Your custom rules here
       "no-unused-vars": "warn",
       "no-console": "off",
-      "eqeqeq": "error",
+      eqeqeq: "error",
     },
   },
 ];

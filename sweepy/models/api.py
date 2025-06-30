@@ -12,6 +12,7 @@ class SweepstakesRequest(BaseModel):
     market_id: str
     method: AssignmentMethod
     participant_names: conlist(str, min_length=2)
+    competition: str | None = None
     ignore_longshots: bool = False
 
 
