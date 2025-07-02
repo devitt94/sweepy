@@ -50,8 +50,16 @@ function CreateForm({ eventTypes, fetchMarkets, handleSubmitSuccess }) {
 
       setFormData({ ...defaultFormData }); // Reset form data
     } catch (err) {
-      console.error("Error creating sweepstake:", err.stack);
-      setError(err.message);
+      if (err.response && err.response.data) {
+        // If the error response contains a message, use it
+        setError(
+          err.response.data.detail ||
+            "An error occurred while creating the sweepstake.",
+        );
+      } else {
+        console.error("Error creating sweepstake:", err.stack);
+        setError(err.message);
+      }
     }
   };
 
@@ -89,9 +97,7 @@ function CreateForm({ eventTypes, fetchMarkets, handleSubmitSuccess }) {
           className="w-full p-2 border rounded"
           required
         >
-          <option value="" selected>
-            Select Event Type
-          </option>
+          <option value="">Select Event Type</option>
           {eventTypes.map((eventType) => (
             <option key={eventType.id} value={eventType.id}>
               {eventType.name}
@@ -105,9 +111,10 @@ function CreateForm({ eventTypes, fetchMarkets, handleSubmitSuccess }) {
           value={formData.market_id}
           onChange={handleChange}
           className="w-full p-2 border rounded"
+          defaultValue=""
           required
         >
-          <option key="empty" value="" selected>
+          <option key="empty" value="">
             Select Market
           </option>
           {markets.map((market) => (

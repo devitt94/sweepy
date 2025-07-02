@@ -12,7 +12,13 @@ from sqlmodel import Session, select
 from sweepy.database import get_session, init_db
 from sweepy import db_models
 from sweepy.integrations.betfair import BetfairClient
-from sweepy.models import SweepstakesRequest, Sweepstakes
+from sweepy.models import (
+    SweepstakesRequest,
+    Sweepstakes,
+    MarketNotFoundException,
+    NotEnoughSelectionsException,
+    NotEnoughLiquidityException,
+)
 from sweepy import generate_sweepstakes
 from sweepy.models.api import EventType, MarketInfo
 
@@ -89,7 +95,15 @@ def create_sweepstakes(
 
     logging.info(f"Creating sweepstake with request: {request}")
 
-    sweepstakes_db = generate_sweepstakes.generate_sweepstakes(__bf_client, request)
+    try:
+        sweepstakes_db = generate_sweepstakes.generate_sweepstakes(__bf_client, request)
+    except (
+        MarketNotFoundException,
+        NotEnoughSelectionsException,
+        NotEnoughLiquidityException,
+    ) as e:
+        logging.error(f"Error generating sweepstake: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
     session.add(sweepstakes_db)
     session.commit()
