@@ -105,16 +105,23 @@ def generate_sweepstakes(
             selections, key=lambda x: x.implied_probability, reverse=True
         )
 
-        participant_db.runners = [
-            db_models.Runner(
+        runners = []
+        for selection in sorted_selections:
+            runner = db_models.Runner(
                 name=selection.name,
-                probability=selection.implied_probability,
                 provider_id=selection.provider_id,
                 participant=participant_db,
             )
-            for selection in sorted_selections
-        ]
 
+            db_models.RunnerOdds(
+                implied_probability=selection.implied_probability,
+                runner=runner,
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
+            )
+
+            runners.append(runner)
+
+        participant_db.runners = runners
         for selection in sorted_selections:
             participant_db.equity += selection.implied_probability
 
@@ -140,7 +147,7 @@ def convert_db_model_to_response(
                 {
                     "provider_id": runner.provider_id,
                     "name": runner.name,
-                    "implied_probability": runner.probability,
+                    "implied_probability": runner.latest_odds.implied_probability,
                 }
                 for runner in participant.runners
             ],
@@ -168,6 +175,7 @@ def refresh_sweepstake(
     """
 
     latest_data = get_selections(client, sweepstake_db.market_id, False)
+    fetched_at = datetime.datetime.now(datetime.timezone.utc)
     if not latest_data:
         raise MarketNotFoundException(
             f"Market not found for market_id {sweepstake_db.market_id}."
@@ -176,8 +184,8 @@ def refresh_sweepstake(
     for participant in sweepstake_db.participants:
         logging.info(f"Refreshing participant: {participant.name}")
         # Update each participant's runners with the latest data
-        updated_runners: list[db_models.Runner] = []
         seen = set()
+        updated_equity = Decimal(0)
         for runner in participant.runners:
             # Find the latest runner data
             if runner.provider_id in seen:
@@ -188,31 +196,27 @@ def refresh_sweepstake(
                 (r for r in latest_data if r.provider_id == runner.provider_id), None
             )
             if latest_runner:
-                updated_runner = db_models.Runner(
-                    name=latest_runner.name,
-                    probability=latest_runner.implied_probability,
-                    provider_id=latest_runner.provider_id,
-                    participant=participant,
-                )
+                p = latest_runner.implied_probability
             else:
                 # If the runner is not found in the latest data, keep the old one but assume probability is 0
                 logging.warning(
                     f"Runner {runner.name} with provider_id {runner.provider_id} not found in latest data."
                 )
-                updated_runner = db_models.Runner(
-                    name=runner.name,
-                    probability=0,
-                    provider_id=runner.provider_id,
-                    participant=participant,
+                p = 0.0
+
+            runner.odds_history.append(
+                db_models.RunnerOdds(
+                    implied_probability=p,
+                    runner=runner,
+                    timestamp=fetched_at,
                 )
+            )
 
-            updated_runners.append(updated_runner)
+            updated_equity += Decimal(p)
 
-        participant.runners = updated_runners
+        # Recalculate equity based on updated odds
+        participant.equity = updated_equity
 
-        # Recalculate equity based on updated runners
-        participant.equity = sum(runner.probability for runner in updated_runners)
-
-    sweepstake_db.updated_at = datetime.datetime.now(datetime.timezone.utc)
+    sweepstake_db.updated_at = fetched_at
     logging.info(f"Refreshed sweepstake: {sweepstake_db.id}")
     return sweepstake_db
