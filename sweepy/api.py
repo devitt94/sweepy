@@ -96,7 +96,9 @@ def create_sweepstakes(
     logging.info(f"Creating sweepstake with request: {request}")
 
     try:
-        sweepstakes_db = generate_sweepstakes.generate_sweepstakes(__bf_client, request)
+        sweepstakes_db = generate_sweepstakes.generate_sweepstakes(
+            __bf_client, request, session
+        )
     except (
         MarketNotFoundException,
         NotEnoughSelectionsException,
@@ -105,8 +107,6 @@ def create_sweepstakes(
         logging.error(f"Error generating sweepstake: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-    session.add(sweepstakes_db)
-    session.commit()
     session.refresh(sweepstakes_db)
 
     response = generate_sweepstakes.convert_db_model_to_response(sweepstakes_db)
@@ -193,11 +193,9 @@ def refresh_sweepstake(
     logging.info(f"Refreshing sweepstake: {sweepstake.stringified_id}")
 
     updated_sweepstake = generate_sweepstakes.refresh_sweepstake(
-        __bf_client, sweepstake
+        __bf_client, sweepstake, session
     )
 
-    session.add(updated_sweepstake)
-    session.commit()
     session.refresh(updated_sweepstake)
 
     resp = generate_sweepstakes.convert_db_model_to_response(updated_sweepstake)

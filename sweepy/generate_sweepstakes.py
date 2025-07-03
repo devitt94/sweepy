@@ -2,6 +2,8 @@ import datetime
 from decimal import Decimal
 import logging
 import random
+
+import sqlmodel
 from sweepy.calculator import compute_market_probabilities
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.models import (
@@ -54,7 +56,9 @@ def get_selections(
 def generate_sweepstakes(
     client: BetfairClient,
     request: SweepstakesRequest,
+    db_session: sqlmodel.Session,
 ) -> db_models.Sweepstakes:
+    timestamp = datetime.datetime.now(datetime.timezone.utc)
     selections = get_selections(client, request.market_id, request.ignore_longshots)
     num_selections = len(selections)
     num_participants = len(request.participant_names)
@@ -89,14 +93,14 @@ def generate_sweepstakes(
         method=request.method,
         participants=[],
         active=True,
-        updated_at=datetime.datetime.now(datetime.timezone.utc),
+        updated_at=timestamp,
         competition=request.competition,
     )
 
     for participant_name, selections in sweepstake_assignments.items():
+        participant_equity = Decimal(0)
         participant_db = db_models.Participant(
             name=participant_name,
-            equity=Decimal(0),
             sweepstake=sweepstakes_db,
             runners=[],
         )
@@ -112,20 +116,33 @@ def generate_sweepstakes(
                 provider_id=selection.provider_id,
                 participant=participant_db,
             )
+            db_session.add(runner)
 
-            db_models.RunnerOdds(
-                implied_probability=selection.implied_probability,
-                runner=runner,
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
+            db_session.add(
+                db_models.RunnerOdds(
+                    implied_probability=selection.implied_probability,
+                    runner=runner,
+                    timestamp=timestamp,
+                )
             )
 
             runners.append(runner)
 
         participant_db.runners = runners
         for selection in sorted_selections:
-            participant_db.equity += selection.implied_probability
+            participant_equity += selection.implied_probability
 
+        db_session.add(
+            db_models.ParticipantOdds(
+                implied_probability=participant_equity,
+                participant=participant_db,
+                timestamp=timestamp,
+            )
+        )
         sweepstakes_db.participants.append(participant_db)
+
+    db_session.add(sweepstakes_db)
+    db_session.commit()
 
     return sweepstakes_db
 
@@ -142,7 +159,7 @@ def convert_db_model_to_response(
     participants = [
         {
             "name": participant.name,
-            "equity": participant.equity,
+            "equity": participant.latest_odds.implied_probability,
             "assignments": [
                 {
                     "provider_id": runner.provider_id,
@@ -168,7 +185,9 @@ def convert_db_model_to_response(
 
 
 def refresh_sweepstake(
-    client: BetfairClient, sweepstake_db: db_models.Sweepstakes
+    client: BetfairClient,
+    sweepstake_db: db_models.Sweepstakes,
+    session: sqlmodel.Session,
 ) -> db_models.Sweepstakes:
     """
     Refresh the sweepstake by re-fetching the market data and updating the participants.
@@ -204,19 +223,30 @@ def refresh_sweepstake(
                 )
                 p = 0.0
 
-            runner.odds_history.append(
-                db_models.RunnerOdds(
-                    implied_probability=p,
-                    runner=runner,
-                    timestamp=fetched_at,
-                )
+            updated_runner_odds = db_models.RunnerOdds(
+                implied_probability=p,
+                runner=runner,
+                timestamp=fetched_at,
             )
-
+            runner.odds_history.append(updated_runner_odds)
             updated_equity += Decimal(p)
 
+            session.add(updated_runner_odds)
+            session.add(runner)
+
         # Recalculate equity based on updated odds
-        participant.equity = updated_equity
+        updated_participant_odds = db_models.ParticipantOdds(
+            implied_probability=updated_equity,
+            participant=participant,
+            timestamp=fetched_at,
+        )
+
+        participant.odds_history.append(updated_participant_odds)
+        session.add(updated_participant_odds)
+        session.add(participant)
 
     sweepstake_db.updated_at = fetched_at
+    session.add(sweepstake_db)
+    session.commit()
     logging.info(f"Refreshed sweepstake: {sweepstake_db.id}")
     return sweepstake_db
