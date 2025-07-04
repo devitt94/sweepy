@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
+import sqlmodel
 
 from sweepy.database import get_session, init_db
 from sweepy import db_models
@@ -21,6 +22,7 @@ from sweepy.models import (
 )
 from sweepy import generate_sweepstakes
 from sweepy.models.api import EventType, MarketInfo
+from sweepy.models.sweepstakes import SweepstakesHistory
 
 dotenv.load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -267,3 +269,52 @@ def get_outright_markets(event_type_id: str):
 
     logging.info(f"Deduplicated markets count: {len(deduplicated_markets)}")
     return list(deduplicated_markets)
+
+
+@app.get("/api/sweepstakes/{sweepstake_id}/history", response_model=SweepstakesHistory)
+def get_sweepstake_history(
+    sweepstake_id: int | str, session: Session = Depends(get_session)
+) -> SweepstakesHistory:
+    """
+    Get the history of a specific sweepstake by ID.
+    """
+    if isinstance(sweepstake_id, str):
+        sweepstake_id = db_models.Sweepstakes.decode_stringified_id(sweepstake_id)
+        if sweepstake_id is None:
+            raise HTTPException(status_code=400, detail="Invalid sweepstake ID format")
+
+    sweepstake = session.get(db_models.Sweepstakes, sweepstake_id)
+
+    if not sweepstake:
+        raise HTTPException(status_code=404, detail="Sweepstake not found")
+
+    all_participants = session.exec(
+        sqlmodel.select(db_models.Participant).where(
+            db_models.Participant.sweepstake_id == sweepstake.id
+        )
+    ).all()
+
+    participant_history = [
+        {
+            "name": participant.name,
+            "history": [
+                {
+                    "probability": odds.implied_probability,
+                    "timestamp": odds.timestamp.isoformat(),
+                }
+                for odds in participant.odds_history
+            ],
+        }
+        for participant in all_participants
+    ]
+
+    return SweepstakesHistory(
+        id=sweepstake.stringified_id,
+        name=sweepstake.name,
+        market_id=sweepstake.market_id,
+        method=sweepstake.method,
+        updated_at=sweepstake.updated_at,
+        active=sweepstake.active,
+        competition=sweepstake.competition,
+        participants=participant_history,
+    )

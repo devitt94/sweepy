@@ -37,13 +37,34 @@ class Participant(BaseModel):
         return f"{self.name} ({self.equity*100:.2f}%){separator}{separator.join([str(assignment) for assignment in self.assignments])}"
 
 
-class Sweepstakes(BaseModel):
+class SweepstakesBase(BaseModel):
     id: str
     name: str
     market_id: str
     method: AssignmentMethod
     updated_at: datetime.datetime
-    participants: list[Participant]
     active: bool
     ignore_longshots: bool = False
     competition: str | None = None
+
+
+class Sweepstakes(SweepstakesBase):
+    participants: list[Participant]
+
+
+class ProbabilitySnapshot(BaseModel):
+    """
+    Model for a snapshot of the probabilities of selections in a market.
+    """
+
+    probability: Decimal = condecimal(ge=0, le=1)
+    timestamp: datetime.datetime
+
+
+class ParticipantOddsHistory(BaseModel):
+    name: str
+    history: list[ProbabilitySnapshot]
+
+
+class SweepstakesHistory(SweepstakesBase):
+    participants: list[ParticipantOddsHistory]
