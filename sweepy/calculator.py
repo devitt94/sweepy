@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sweepy.models import PriceSize, RunnerOdds, Runner
+from sweepy.models import PriceSize, RunnerOdds, Runner, NotEnoughLiquidityException
 
 NUM_DECIMAL_PLACES = 4
 
@@ -115,6 +115,9 @@ def compute_market_probabilities(runners: list[Runner]) -> list[RunnerOdds]:
 
         market_overround += implied_probability
         runner_probabilities.append((runner, implied_probability))
+
+    if market_overround == Decimal("0.0"):
+        raise NotEnoughLiquidityException
 
     return [
         RunnerOdds(

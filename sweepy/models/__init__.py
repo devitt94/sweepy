@@ -2,7 +2,11 @@ from .market import Market, Runner, PriceSize
 from .sweepstakes import RunnerOdds, Participant, Sweepstakes
 from .api import SweepstakesRequest
 from .enums import AssignmentMethod
-from .exceptions import MarketNotFoundException, NotEnoughSelectionsException
+from .exceptions import (
+    MarketNotFoundException,
+    NotEnoughSelectionsException,
+    NotEnoughLiquidityException,
+)
 
 __all__ = [
     "AssignmentMethod",
@@ -15,4 +19,5 @@ __all__ = [
     "Sweepstakes",
     "MarketNotFoundException",
     "NotEnoughSelectionsException",
+    "NotEnoughLiquidityException",
 ]
