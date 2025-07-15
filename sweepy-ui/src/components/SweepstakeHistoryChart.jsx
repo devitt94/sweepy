@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-function HistoryChart({ sweepstakeId, getSweepstakeHistory }) {
+function SweepstakeHistoryChart({ sweepstakeId, getSweepstakeHistory }) {
   const [chartData, setChartData] = useState([]);
   const [participantNames, setParticipantNames] = useState([]);
 
@@ -26,10 +26,8 @@ function HistoryChart({ sweepstakeId, getSweepstakeHistory }) {
 
       const sortedTimestamps = Array.from(allTimestamps).sort();
 
-      // 2. Build a data array where each item is:
-      // { timestamp: "...", [participantName1]: value, [participantName2]: value }
       const data = sortedTimestamps.map((timestamp) => {
-        const entry = { timestamp };
+        const entry = { timestamp: new Date(timestamp).getTime() }; // numeric timestamp
         participants.forEach((participant) => {
           const point = participant.history.find(
             (h) => h.timestamp === timestamp,
@@ -48,13 +46,25 @@ function HistoryChart({ sweepstakeId, getSweepstakeHistory }) {
     fetchData();
   }, []);
 
+  const axisDateFormatter = (str) => {
+    const date = new Date(str);
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="mt-6">
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={chartData}>
           <XAxis
             dataKey="timestamp"
-            tickFormatter={(str) => new Date(str).toLocaleTimeString()}
+            type="number"
+            domain={["auto", "auto"]}
+            scale="time"
+            tickFormatter={axisDateFormatter}
+            interval="preserveStartEnd"
           />
           <YAxis
             domain={[0, 1]}
@@ -86,4 +96,4 @@ const COLORS = [
   "#00C49F",
 ];
 
-export default HistoryChart;
+export default SweepstakeHistoryChart;
