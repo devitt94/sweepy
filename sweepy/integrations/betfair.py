@@ -1,5 +1,6 @@
+import logging
 import requests
-
+from sweepy.cache import timed_cached_property
 
 LOGIN_URL = "https://identitysso.betfair.com/api/login"
 
@@ -11,7 +12,6 @@ class BetfairClient:
         self.username = username
         self.password = password
         self.app_key = app_key
-        self.token = self._login()
 
     def __headers(self, include_token: bool = True):
         headers = {
@@ -23,7 +23,9 @@ class BetfairClient:
             headers["X-Authentication"] = self.token
         return headers
 
-    def _login(self):
+    @timed_cached_property(ttl_seconds=1800)
+    def token(self):
+        logging.info("Fetching Betfair API token.")
         response = requests.post(
             LOGIN_URL,
             headers={

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import CreateForm from "./components/CreateForm";
-import Table from "./components/Table";
 import Home from "./components/Home";
+import SweepstakeDetail from "./components/SweepstakeDetail";
 import ApiClient from "./Api";
 
 const App = () => {
@@ -108,6 +108,22 @@ const App = () => {
       });
   };
 
+  const getSweepstakeHistory = (sweepstakeId) => {
+    return apiClient
+      .getSweepstakeHistory(sweepstakeId)
+      .then((data) => {
+        setError(null);
+        return data;
+      })
+      .catch((error) => {
+        console.error("Error fetching sweepstake history:", error);
+        setError(
+          `Failed to fetch history for sweepstake with ID ${sweepstakeId}`,
+        );
+        return [];
+      });
+  };
+
   const mainComponent = () => {
     let component;
     if (displayHome) {
@@ -129,8 +145,9 @@ const App = () => {
       );
     } else if (sweepstake) {
       component = (
-        <Table
-          data={sweepstake}
+        <SweepstakeDetail
+          sweepstake={sweepstake}
+          getSweepstakeHistory={getSweepstakeHistory}
           refreshSweepstake={refreshSweepstake}
           closeSweepstake={closeSweepstake}
         />

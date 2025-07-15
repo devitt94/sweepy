@@ -118,4 +118,21 @@ export default class ApiClient {
     const data = await response.json();
     return data;
   }
+
+  async getSweepstakeHistory(sweepstakeId) {
+    const url = `/api/sweepstakes/${sweepstakeId}/history`;
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    const response = await fetch(url, {
+      method: "GET",
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    return data;
+  }
 }

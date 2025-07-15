@@ -22,12 +22,7 @@ from sweepy import db_models
 def get_selections(
     betfair_client: BetfairClient, market_id: str, ignore_longshots: bool
 ) -> list[RunnerOdds]:
-    try:
-        runner_names = betfair_client.get_selection_names(market_id)
-    except Exception as e:
-        raise MarketNotFoundException(
-            f"Market not found for market_id {market_id}."
-        ) from e
+    runner_names = betfair_client.get_selection_names(market_id)
 
     market = betfair_client.get_market_book(market_id)
 
@@ -228,11 +223,9 @@ def refresh_sweepstake(
                 runner=runner,
                 timestamp=fetched_at,
             )
-            runner.odds_history.append(updated_runner_odds)
-            updated_equity += Decimal(p)
-
             session.add(updated_runner_odds)
             session.add(runner)
+            updated_equity += Decimal(p)
 
         # Recalculate equity based on updated odds
         updated_participant_odds = db_models.ParticipantOdds(
@@ -241,7 +234,6 @@ def refresh_sweepstake(
             timestamp=fetched_at,
         )
 
-        participant.odds_history.append(updated_participant_odds)
         session.add(updated_participant_odds)
         session.add(participant)
 
