@@ -43,25 +43,27 @@ function SweepstakeDetail({
   const [loading, setLoading] = useState(true);
   const [sweepstakeHistory, setSweepstakeHistory] = useState([]);
 
-  const fetchHistory = async () => {
+  const refreshData = async () => {
     setLoading(true);
+    try {
+      await refreshSweepstake(sweepstake.id);
+    } catch (error) {
+      console.error("Error refreshing sweepstake:", error);
+    }
+
     try {
       const history = await getSweepstakeHistory(sweepstake.id);
       setSweepstakeHistory(history);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching sweepstake history:", error);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchHistory();
+    refreshData();
   }, []);
-
-  const refreshHandler = () => {
-    refreshSweepstake(sweepstake.id);
-    fetchHistory();
-  };
 
   const closeHandler = () => {
     if (!window.confirm("Are you sure you want to close this sweepstake?")) {
@@ -100,7 +102,7 @@ function SweepstakeDetail({
       </p>
       <button
         type="button"
-        onClick={refreshHandler}
+        onClick={refreshData}
         className="mb-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
         title="Refresh"
       >
