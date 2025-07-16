@@ -44,10 +44,7 @@ async def lifespan(app: FastAPI):
 
     logging.info("Betfair client initialized.")
 
-    recreate_db = (
-        os.getenv("RECREATE_DB", "false").lower() == "true"
-        or os.getenv("ENVIRONMENT") == "development"
-    )
+    recreate_db = os.getenv("RECREATE_DB", "false").lower() == "true"
     init_db(recreate=recreate_db)
     logging.info("Database initialized.")
 
@@ -252,8 +249,10 @@ def get_event_types():
     """
     Get a list of all event types available in Betfair.
     """
-    event_types = __bf_client.get_event_types()
-    return [EventType(**event_type) for event_type in event_types]
+    event_types = [
+        EventType(**event_type) for event_type in __bf_client.get_event_types()
+    ]
+    return sorted(event_types, key=lambda x: x.name)
 
 
 @app.get("/api/markets/{event_type_id}", response_model=list[MarketInfo])
@@ -265,7 +264,8 @@ def get_outright_markets(event_type_id: str):
 
     logging.info(f"Found {len(markets)} markets for event type {event_type_id}")
 
-    deduplicated_markets = set([MarketInfo(**market) for market in markets])
+    deduplicated_markets = list(set([MarketInfo(**market) for market in markets]))
+    deduplicated_markets.sort(key=lambda x: (x.event_name, x.market_name))
 
     logging.info(f"Deduplicated markets count: {len(deduplicated_markets)}")
     return list(deduplicated_markets)

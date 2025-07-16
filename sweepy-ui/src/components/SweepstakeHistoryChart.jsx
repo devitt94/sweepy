@@ -9,42 +9,34 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-function SweepstakeHistoryChart({ sweepstakeId, getSweepstakeHistory }) {
+function SweepstakeHistoryChart({ sweepstakeHistory }) {
   const [chartData, setChartData] = useState([]);
   const [participantNames, setParticipantNames] = useState([]);
 
+  const participants = sweepstakeHistory.participants;
+
   useEffect(() => {
-    const fetchData = async () => {
-      const sweepstakeHistory = await getSweepstakeHistory(sweepstakeId);
-      const participants = sweepstakeHistory.participants;
+    const allTimestamps = new Set();
+    participants.forEach((p) =>
+      p.history.forEach((h) => allTimestamps.add(h.timestamp)),
+    );
 
-      // 1. Get all unique timestamps
-      const allTimestamps = new Set();
-      participants.forEach((p) =>
-        p.history.forEach((h) => allTimestamps.add(h.timestamp)),
-      );
+    const sortedTimestamps = Array.from(allTimestamps).sort();
 
-      const sortedTimestamps = Array.from(allTimestamps).sort();
-
-      const data = sortedTimestamps.map((timestamp) => {
-        const entry = { timestamp: new Date(timestamp).getTime() }; // numeric timestamp
-        participants.forEach((participant) => {
-          const point = participant.history.find(
-            (h) => h.timestamp === timestamp,
-          );
-          entry[participant.name] = point
-            ? parseFloat(point.probability)
-            : null;
-        });
-        return entry;
+    const data = sortedTimestamps.map((timestamp) => {
+      const entry = { timestamp: new Date(timestamp).getTime() }; // numeric timestamp
+      participants.forEach((participant) => {
+        const point = participant.history.find(
+          (h) => h.timestamp === timestamp,
+        );
+        entry[participant.name] = point ? parseFloat(point.probability) : null;
       });
+      return entry;
+    });
 
-      setChartData(data);
-      setParticipantNames(participants.map((p) => p.name));
-    };
-
-    fetchData();
-  }, []);
+    setChartData(data);
+    setParticipantNames(participants.map((p) => p.name));
+  }, [sweepstakeHistory]);
 
   const axisDateFormatter = (str) => {
     const date = new Date(str);

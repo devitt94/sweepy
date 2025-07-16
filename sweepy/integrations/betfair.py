@@ -111,6 +111,7 @@ class BetfairClient:
                 },
                 "maxResults": 25,
                 "marketProjection": ["EVENT", "COMPETITION"],
+                "sort": "FIRST_TO_START",
             },
         )
         response.raise_for_status()

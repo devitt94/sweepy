@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import SweepstakeTable from "./SweepstakeTable";
 import SweepstakeHistoryChart from "./SweepstakeHistoryChart";
 
@@ -39,9 +40,30 @@ function SweepstakeDetail({
   refreshSweepstake,
   closeSweepstake,
 }) {
-  const refreshHandler = () => {
-    refreshSweepstake(sweepstake.id);
+  const [loading, setLoading] = useState(true);
+  const [sweepstakeHistory, setSweepstakeHistory] = useState([]);
+
+  const refreshData = async () => {
+    setLoading(true);
+    try {
+      await refreshSweepstake(sweepstake.id);
+    } catch (error) {
+      console.error("Error refreshing sweepstake:", error);
+    }
+
+    try {
+      const history = await getSweepstakeHistory(sweepstake.id);
+      setSweepstakeHistory(history);
+    } catch (error) {
+      console.error("Error fetching sweepstake history:", error);
+    }
+
+    setLoading(false);
   };
+
+  useEffect(() => {
+    refreshData();
+  }, []);
 
   const closeHandler = () => {
     if (!window.confirm("Are you sure you want to close this sweepstake?")) {
@@ -50,6 +72,24 @@ function SweepstakeDetail({
 
     closeSweepstake(sweepstake.id);
   };
+
+  if (loading) {
+    return (
+      <div className="mt-6">
+        <p className="text-gray-600">Loading sweepstake details...</p>
+      </div>
+    );
+  }
+
+  if (!sweepstakeHistory) {
+    return (
+      <div className="mt-6">
+        <p className="text-red-600">
+          Error loading sweepstake details. Please try again later.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-6">
@@ -62,7 +102,7 @@ function SweepstakeDetail({
       </p>
       <button
         type="button"
-        onClick={refreshHandler}
+        onClick={refreshData}
         className="mb-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
         title="Refresh"
       >
@@ -80,10 +120,7 @@ function SweepstakeDetail({
         Last refresh: {timeAgo(sweepstake.updated_at)}
       </p>
       <SweepstakeTable data={sweepstake} />
-      <SweepstakeHistoryChart
-        sweepstakeId={sweepstake.id}
-        getSweepstakeHistory={getSweepstakeHistory}
-      />
+      <SweepstakeHistoryChart sweepstakeHistory={sweepstakeHistory} />
     </div>
   );
 }
