@@ -9,13 +9,15 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-function SweepstakeHistoryChart({ sweepstakeId, getSweepstakeHistory }) {
+function SweepstakeHistoryChart({ sweepstakeHistory }) {
   const [chartData, setChartData] = useState([]);
   const [participantNames, setParticipantNames] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const sweepstakeHistory = await getSweepstakeHistory(sweepstakeId);
+    const renderChart = async () => {
+      console.log("Rendering sweepstake history chart...");
+      console.log(JSON.stringify(sweepstakeHistory, null, 2));
+
       const participants = sweepstakeHistory.participants;
 
       // 1. Get all unique timestamps
@@ -43,7 +45,7 @@ function SweepstakeHistoryChart({ sweepstakeId, getSweepstakeHistory }) {
       setParticipantNames(participants.map((p) => p.name));
     };
 
-    fetchData();
+    renderChart();
   }, []);
 
   const axisDateFormatter = (str) => {

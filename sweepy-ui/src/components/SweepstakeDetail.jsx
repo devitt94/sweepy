@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import SweepstakeTable from "./SweepstakeTable";
 import SweepstakeHistoryChart from "./SweepstakeHistoryChart";
 
@@ -39,8 +40,27 @@ function SweepstakeDetail({
   refreshSweepstake,
   closeSweepstake,
 }) {
+  const [loading, setLoading] = useState(true);
+  const [sweepstakeHistory, setSweepstakeHistory] = useState([]);
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const history = await getSweepstakeHistory(sweepstake.id);
+      setSweepstakeHistory(history);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching sweepstake history:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
   const refreshHandler = () => {
     refreshSweepstake(sweepstake.id);
+    fetchHistory();
   };
 
   const closeHandler = () => {
@@ -50,6 +70,24 @@ function SweepstakeDetail({
 
     closeSweepstake(sweepstake.id);
   };
+
+  if (loading) {
+    return (
+      <div className="mt-6">
+        <p className="text-gray-600">Loading sweepstake details...</p>
+      </div>
+    );
+  }
+
+  if (!sweepstakeHistory) {
+    return (
+      <div className="mt-6">
+        <p className="text-red-600">
+          Error loading sweepstake details. Please try again later.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-6">
@@ -80,10 +118,7 @@ function SweepstakeDetail({
         Last refresh: {timeAgo(sweepstake.updated_at)}
       </p>
       <SweepstakeTable data={sweepstake} />
-      <SweepstakeHistoryChart
-        sweepstakeId={sweepstake.id}
-        getSweepstakeHistory={getSweepstakeHistory}
-      />
+      <SweepstakeHistoryChart sweepstakeHistory={sweepstakeHistory} />
     </div>
   );
 }
