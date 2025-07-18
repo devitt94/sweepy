@@ -7,6 +7,10 @@ function SweepstakeTable({ data }) {
     setExpandedRow(expandedRow === index ? null : index);
   };
 
+  const sortedParticipants = [...data.participants].sort((a, b) => {
+    return parseFloat(b.equity) - parseFloat(a.equity);
+  });
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border rounded-lg">
@@ -17,7 +21,7 @@ function SweepstakeTable({ data }) {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.participants.map((p, index) => (
+          {sortedParticipants.map((p, index) => (
             <React.Fragment key={index}>
               <tr className="cursor-pointer" onClick={() => toggleRow(index)}>
                 <td className="px-4 py-2">{p.name}</td>
