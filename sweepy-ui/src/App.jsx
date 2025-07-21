@@ -66,19 +66,6 @@ const App = () => {
       });
   };
 
-  const refreshSweepstake = async (id) => {
-    apiClient
-      .refreshSweepstake(id)
-      .then((data) => {
-        setError(null);
-        setSweepstake(data);
-      })
-      .catch((error) => {
-        console.error("Error refreshing sweepstake:", error);
-        setError(`Failed to refresh sweepstake with ID ${id}`);
-      });
-  };
-
   const closeSweepstake = async (id) => {
     apiClient
       .closeSweepstake(id)
@@ -148,7 +135,6 @@ const App = () => {
         <SweepstakeDetail
           sweepstake={sweepstake}
           getSweepstakeHistory={getSweepstakeHistory}
-          refreshSweepstake={refreshSweepstake}
           closeSweepstake={closeSweepstake}
         />
       );
