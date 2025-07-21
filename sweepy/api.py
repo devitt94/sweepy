@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 import datetime
 import logging
@@ -11,7 +12,7 @@ from sqlmodel import Session, select
 import sqlmodel
 
 from sweepy.database import get_session, init_db
-from sweepy import db_models
+from sweepy import db_models, tasks
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.models import (
     SweepstakesRequest,
@@ -47,6 +48,9 @@ async def lifespan(app: FastAPI):
     recreate_db = os.getenv("RECREATE_DB", "false").lower() == "true"
     init_db(recreate=recreate_db)
     logging.info("Database initialized.")
+
+    logging.info("Starting the sweepstakes refresh task.")
+    asyncio.create_task(tasks.refresh_all_sweepstakes_task(__bf_client))
 
     yield
 
