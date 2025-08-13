@@ -6,6 +6,8 @@ import random
 import sqlmodel
 from sweepy.calculator import compute_market_probabilities
 from sweepy.integrations.betfair import BetfairClient
+from sweepy.integrations.live_golf.client import LiveGolfClient
+from sweepy.matchmaker import get_live_golf_tournament_id
 from sweepy.models import (
     AssignmentMethod,
     RunnerOdds,
@@ -49,12 +51,18 @@ def get_selections(
 
 
 def generate_sweepstakes(
-    client: BetfairClient,
+    bf_client: BetfairClient,
+    lg_client: LiveGolfClient,
     request: SweepstakesRequest,
     db_session: sqlmodel.Session,
 ) -> db_models.Sweepstakes:
     timestamp = datetime.datetime.now(datetime.timezone.utc)
-    selections = get_selections(client, request.market_id, request.ignore_longshots)
+    selections = get_selections(bf_client, request.market_id, request.ignore_longshots)
+
+    lg_tournament_id = get_live_golf_tournament_id(
+        request.market_id, bf_client, lg_client
+    )
+
     num_selections = len(selections)
     num_participants = len(request.participant_names)
 
@@ -90,6 +98,7 @@ def generate_sweepstakes(
         active=True,
         updated_at=timestamp,
         competition=request.competition,
+        tournament_id=lg_tournament_id,
     )
 
     for participant_name, selections in sweepstake_assignments.items():

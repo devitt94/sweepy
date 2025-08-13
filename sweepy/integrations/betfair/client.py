@@ -1,6 +1,7 @@
-import logging
+import arrow
 import requests
 from sweepy.cache import timed_cached_property
+from .models import MarketInfo
 
 LOGIN_URL = "https://identitysso.betfair.com/api/login"
 
@@ -25,7 +26,6 @@ class BetfairClient:
 
     @timed_cached_property(ttl_seconds=1800)
     def token(self):
-        logging.info("Fetching Betfair API token.")
         response = requests.post(
             LOGIN_URL,
             headers={
@@ -42,7 +42,7 @@ class BetfairClient:
         response_data = response.json()
         return response_data["token"]
 
-    def get_selection_names(self, market_id: str):
+    def get_selection_names(self, market_id: str) -> dict[str, str]:
         url = f"{self.BASE_SPORTS_URL}listMarketCatalogue/"
         response = requests.post(
             url,
@@ -94,7 +94,7 @@ class BetfairClient:
 
         return [item["eventType"] for item in response.json()]
 
-    def get_outright_markets(self, event_type_id: str) -> list[dict]:
+    def get_outright_markets(self, event_type_id: str) -> list[MarketInfo]:
         url = f"{self.BASE_SPORTS_URL}listMarketCatalogue/"
         response = requests.post(
             url,
@@ -110,19 +110,43 @@ class BetfairClient:
                     ],
                 },
                 "maxResults": 25,
-                "marketProjection": ["EVENT", "COMPETITION"],
+                "marketProjection": ["EVENT", "COMPETITION", "MARKET_START_TIME"],
                 "sort": "FIRST_TO_START",
             },
         )
         response.raise_for_status()
 
         return [
-            {
-                "market_id": market["marketId"],
-                "market_name": market["marketName"],
-                "event_name": market["event"]["name"],
-                "competition_name": market["competition"]["name"],
-            }
+            MarketInfo(
+                market_id=market["marketId"],
+                market_name=market["marketName"].strip(),
+                event_name=market["event"]["name"].strip(),
+                competition_name=market["competition"]["name"].strip(),
+                market_start_time=market["marketStartTime"],
+            )
             for market in response.json()
             if "event" in market and "competition" in market
         ]
+
+    def get_market_info(self, market_id: str) -> MarketInfo:
+        url = f"{self.BASE_SPORTS_URL}listMarketCatalogue/"
+        response = requests.post(
+            url,
+            headers=self.__headers(),
+            json={
+                "filter": {
+                    "marketIds": [market_id],
+                },
+                "maxResults": 1,
+                "marketProjection": ["EVENT", "COMPETITION", "MARKET_START_TIME"],
+            },
+        )
+        response.raise_for_status()
+        market_info = response.json()[0]
+        return MarketInfo(
+            market_id=market_info["marketId"],
+            market_name=market_info["marketName"].strip(),
+            event_name=market_info["event"]["name"].strip(),
+            competition_name=market_info["competition"]["name"].strip(),
+            market_start_time=arrow.get(market_info["marketStartTime"]).datetime,
+        )

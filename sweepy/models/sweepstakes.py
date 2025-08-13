@@ -46,6 +46,7 @@ class SweepstakesBase(BaseModel):
     active: bool
     ignore_longshots: bool = False
     competition: str | None = None
+    tournament_id: str | None = None
 
 
 class Sweepstakes(SweepstakesBase):

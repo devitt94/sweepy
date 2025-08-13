@@ -14,6 +14,7 @@ import sqlmodel
 from sweepy.database import get_session, init_db
 from sweepy import db_models, tasks
 from sweepy.integrations.betfair import BetfairClient
+from sweepy.integrations.live_golf import LiveGolfClient
 from sweepy.models import (
     SweepstakesRequest,
     Sweepstakes,
@@ -29,11 +30,12 @@ dotenv.load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 __bf_client = None
+__live_golf_client = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global __bf_client
+    global __bf_client, __live_golf_client
 
     logging.info("Starting up the FastAPI application.")
 
@@ -44,6 +46,10 @@ async def lifespan(app: FastAPI):
     )
 
     logging.info("Betfair client initialized.")
+
+    __live_golf_client = LiveGolfClient(api_key=os.getenv("LIVE_GOLF_API_KEY"))
+
+    logging.info("Live Golf client initialized.")
 
     recreate_db = os.getenv("RECREATE_DB", "false").lower() == "true"
     init_db(recreate=recreate_db)
@@ -100,7 +106,7 @@ def create_sweepstakes(
 
     try:
         sweepstakes_db = generate_sweepstakes.generate_sweepstakes(
-            __bf_client, request, session
+            __bf_client, __live_golf_client, request, session
         )
     except (
         MarketNotFoundException,
@@ -268,7 +274,7 @@ def get_outright_markets(event_type_id: str):
 
     logging.info(f"Found {len(markets)} markets for event type {event_type_id}")
 
-    deduplicated_markets = list(set([MarketInfo(**market) for market in markets]))
+    deduplicated_markets = list(set(market for market in markets))
     deduplicated_markets.sort(key=lambda x: (x.event_name, x.market_name))
 
     logging.info(f"Deduplicated markets count: {len(deduplicated_markets)}")

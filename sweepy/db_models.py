@@ -20,6 +20,7 @@ class Sweepstakes(SQLModel, table=True):
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
     participants: List["Participant"] = Relationship(back_populates="sweepstake")
+    tournament_id: Optional[str] = None
 
     @property
     def stringified_id(self) -> Optional[str]:

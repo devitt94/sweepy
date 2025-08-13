@@ -3,11 +3,13 @@ import os
 
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+DEV_MODE = os.getenv("ENVIRONMENT") == "development"
 
-if os.getenv("ENVIRONMENT") == "development":
+if DEV_MODE:
     connect_args = {}
 else:
     connect_args = {"sslmode": "require"}
@@ -20,10 +22,21 @@ engine = create_engine(
 
 
 def init_db(recreate: bool = False):
-    if recreate:
-        SQLModel.metadata.drop_all(engine)
+    print(f"Initialising database: {DEV_MODE=} {DATABASE_URL=}")
 
-    SQLModel.metadata.create_all(engine)
+    try:
+        if recreate:
+            SQLModel.metadata.drop_all(engine)
+            print("Dropped existing database tables.")
+
+        SQLModel.metadata.create_all(engine)
+        print("Created database tables.")
+
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+
+    else:
+        print("Database recreated.")
 
 
 def get_session():
@@ -31,5 +44,4 @@ def get_session():
 
 
 if __name__ == "__main__":
-    init_db(recreate=True)
-    print("Database initialized.")
+    init_db()
