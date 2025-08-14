@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from sqlmodel import SQLModel, create_engine, Session
 import os
 
@@ -37,6 +38,15 @@ def init_db(recreate: bool = False):
 
     else:
         print("Database recreated.")
+
+
+@contextmanager
+def get_session_context():
+    session = Session(engine)
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 def get_session():

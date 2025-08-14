@@ -20,21 +20,22 @@ async def refresh_all_sweepstakes_task(
     """
     while True:
         logging.info("Starting to refresh all sweepstakes.")
-        db_session = database.get_session()
+        with database.get_session_context() as db_session:
+            statement = select(db_models.Sweepstakes).where(
+                db_models.Sweepstakes.active
+            )
 
-        statement = select(db_models.Sweepstakes).where(db_models.Sweepstakes.active)
-
-        all_active_sweepstakes = db_session.exec(statement).scalars().all()
-        if not all_active_sweepstakes:
-            logging.info("No active sweepstakes found.")
-        else:
-            for sweepstake in all_active_sweepstakes:
-                logging.info(f"Refreshing sweepstake: {sweepstake.id}")
-                generate_sweepstakes.refresh_sweepstake(
-                    client=bf_client,
-                    sweepstake_db=sweepstake,
-                    session=db_session,
-                )
+            all_active_sweepstakes = db_session.exec(statement).scalars().all()
+            if not all_active_sweepstakes:
+                logging.info("No active sweepstakes found.")
+            else:
+                for sweepstake in all_active_sweepstakes:
+                    logging.info(f"Refreshing sweepstake: {sweepstake.id}")
+                    generate_sweepstakes.refresh_sweepstake(
+                        client=bf_client,
+                        sweepstake_db=sweepstake,
+                        session=db_session,
+                    )
 
             logging.info("All active sweepstakes have been refreshed.")
 
