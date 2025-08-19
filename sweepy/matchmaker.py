@@ -19,7 +19,12 @@ def get_live_golf_tournament(
     """
 
     print(f"Betfair Market Info: {bf_info}")
-    lg_schedule = live_golf_client.get_schedule(season=bf_info.market_start_time.year)
+    try:
+        lg_schedule = live_golf_client.get_schedule(
+            season=bf_info.market_start_time.year
+        )
+    except Exception as e:
+        raise ValueError(f"Error fetching Live Golf schedule: {e}")
 
     for tournament in lg_schedule:
         name_match_ratio = rapidfuzz.fuzz.ratio(tournament.name, bf_info.event_name)

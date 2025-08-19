@@ -65,7 +65,7 @@ def generate_sweepstakes(
         try:
             lg_tournament = get_live_golf_tournament(bf_info, lg_client)
         except ValueError as e:
-            logging.exception(f"Error getting Live Golf tournament: {e}")
+            logging.error(f"Error getting Live Golf tournament: {e}")
             tournament_id = None
         else:
             tournament_id = lg_tournament.id
@@ -179,6 +179,7 @@ def convert_db_model_to_response(
                     "provider_id": runner.market_provider_id,
                     "name": runner.name,
                     "implied_probability": runner.latest_odds.implied_probability,
+                    "score": runner.score,
                 }
                 for runner in participant.runners
             ],
