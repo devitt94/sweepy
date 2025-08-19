@@ -39,6 +39,7 @@ function SweepstakeTable({ data }) {
                         <tr>
                           <th className="px-4 py-2 text-left">Runner</th>
                           <th className="px-4 py-2 text-left">Probability</th>
+                          <th className="px-4 py-2 text-left">Score</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -50,6 +51,9 @@ function SweepstakeTable({ data }) {
                                 assignment.implied_probability * 100,
                               ).toFixed(2)}
                               %
+                            </td>
+                            <td className="px-4 py-2">
+                              {assignment.score ? assignment.score : "N/A"}
                             </td>
                           </tr>
                         ))}
