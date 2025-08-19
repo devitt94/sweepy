@@ -121,6 +121,7 @@ class BetfairClient:
                 market_id=market["marketId"],
                 market_name=market["marketName"].strip(),
                 event_name=market["event"]["name"].strip(),
+                event_type=event_type_id,
                 competition_name=market["competition"]["name"].strip(),
                 market_start_time=market["marketStartTime"],
             )
@@ -138,15 +139,22 @@ class BetfairClient:
                     "marketIds": [market_id],
                 },
                 "maxResults": 1,
-                "marketProjection": ["EVENT", "COMPETITION", "MARKET_START_TIME"],
+                "marketProjection": [
+                    "EVENT",
+                    "COMPETITION",
+                    "MARKET_START_TIME",
+                    "EVENT_TYPE",
+                ],
             },
         )
         response.raise_for_status()
         market_info = response.json()[0]
+        print(f"Market Info: {market_info}")  # Debugging line
         return MarketInfo(
             market_id=market_info["marketId"],
             market_name=market_info["marketName"].strip(),
             event_name=market_info["event"]["name"].strip(),
+            event_type=market_info["eventType"]["id"],
             competition_name=market_info["competition"]["name"].strip(),
             market_start_time=arrow.get(market_info["marketStartTime"]).datetime,
         )

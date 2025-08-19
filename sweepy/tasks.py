@@ -5,6 +5,7 @@ import dotenv
 from sqlalchemy import select
 from sweepy import db_models, generate_sweepstakes, database
 from sweepy.integrations import betfair
+from sweepy.integrations.live_golf.client import LiveGolfClient
 
 REDIS_URL = os.getenv("REDIS_URL")
 
@@ -13,11 +14,17 @@ REFRESH_INTERVAL = int(os.getenv("REFRESH_INTERVAL", 900))
 
 
 async def refresh_all_sweepstakes_task(
-    bf_client: betfair.BetfairClient, delay_seconds: int = REFRESH_INTERVAL
+    bf_client: betfair.BetfairClient,
+    lg_client: LiveGolfClient,
+    delay_seconds: int = REFRESH_INTERVAL,
 ):
     """
     Task to refresh all sweepstakes.
     """
+
+    if delay_seconds <= 0:
+        return
+
     while True:
         logging.info("Starting to refresh all sweepstakes.")
         with database.get_session_context() as db_session:
@@ -31,8 +38,14 @@ async def refresh_all_sweepstakes_task(
             else:
                 for sweepstake in all_active_sweepstakes:
                     logging.info(f"Refreshing sweepstake: {sweepstake.id}")
-                    generate_sweepstakes.refresh_sweepstake(
+                    generate_sweepstakes.refresh_sweepstake_odds(
                         client=bf_client,
+                        sweepstake_db=sweepstake,
+                        session=db_session,
+                    )
+
+                    generate_sweepstakes.refresh_sweepstake_leaderboard(
+                        client=lg_client,
                         sweepstake_db=sweepstake,
                         session=db_session,
                     )

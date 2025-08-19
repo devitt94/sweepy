@@ -15,6 +15,9 @@ class Sweepstakes(SQLModel, table=True):
     competition: str
     method: str
     active: bool
+    start_date: datetime.datetime = Field(
+        sa_column=Column(DateTime(timezone=True)),
+    )
     updated_at: datetime.datetime = Field(
         sa_column=Column(DateTime(timezone=True)),
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc),
@@ -41,6 +44,24 @@ class Sweepstakes(SQLModel, table=True):
             return hashids.decode(stringified_id[2:])[0]
         except IndexError:
             return None
+
+    @property
+    def runners(self) -> List["Runner"]:
+        """
+        Returns the list of runners associated with the sweepstake.
+        """
+        return [
+            runner
+            for participant in self.participants
+            for runner in participant.runners
+        ]
+
+    @property
+    def has_leaderboard(self) -> bool:
+        """
+        Returns whether the sweepstake has score data.
+        """
+        return self.tournament_id is not None
 
 
 class Participant(SQLModel, table=True):
@@ -80,7 +101,9 @@ class ParticipantOdds(SQLModel, table=True):
 class Runner(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    provider_id: str
+    market_provider_id: str
+    score_provider_id: Optional[str] = None
+    score: Optional[int] = None
     participant_id: Optional[int] = Field(default=None, foreign_key="participant.id")
 
     participant: Optional["Participant"] = Relationship(back_populates="runners")

@@ -46,12 +46,12 @@ class LiveGolfClient:
         schedule = response.json()["schedule"]
         return list(map(parse_tournament_from_schedule_response, schedule))
 
-    def get_leaderboard(self, season: int, tournament_id: str, tour_id: int = 1):
+    def get_leaderboard(self, year: int, tournament_id: str, tour_id: int = 1):
         url = f"{BASE_URL}leaderboard"
         response = requests.get(
             url,
             headers=self.__headers,
-            params={"orgId": tour_id, "season": season, "tournId": tournament_id},
+            params={"orgId": tour_id, "year": year, "tournId": tournament_id},
         )
         response.raise_for_status()
         return response.json()

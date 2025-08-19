@@ -15,6 +15,7 @@ from sweepy.database import get_session, init_db
 from sweepy import db_models, tasks
 from sweepy.integrations.betfair import BetfairClient
 from sweepy.integrations.live_golf import LiveGolfClient
+from sweepy import matchmaker
 from sweepy.models import (
     SweepstakesRequest,
     Sweepstakes,
@@ -56,7 +57,9 @@ async def lifespan(app: FastAPI):
     logging.info("Database initialized.")
 
     logging.info("Starting the sweepstakes refresh task.")
-    asyncio.create_task(tasks.refresh_all_sweepstakes_task(__bf_client))
+    asyncio.create_task(
+        tasks.refresh_all_sweepstakes_task(__bf_client, __live_golf_client)
+    )
 
     yield
 
@@ -108,6 +111,7 @@ def create_sweepstakes(
         sweepstakes_db = generate_sweepstakes.generate_sweepstakes(
             __bf_client, __live_golf_client, request, session
         )
+
     except (
         MarketNotFoundException,
         NotEnoughSelectionsException,
@@ -115,6 +119,33 @@ def create_sweepstakes(
     ) as e:
         logging.error(f"Error generating sweepstake: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+    if sweepstakes_db.has_leaderboard:
+        logging.info("Sweepstake has leaderboard data, updating Live Golf matching.")
+        try:
+            matchmaker.match_runners_to_live_golf(
+                runners=sweepstakes_db.runners,
+                lg_tournament_id=sweepstakes_db.tournament_id,
+                season=sweepstakes_db.start_date.year,
+                lg_client=__live_golf_client,
+                session=session,
+            )
+
+            generate_sweepstakes.refresh_sweepstake_leaderboard(
+                client=__live_golf_client,
+                sweepstake_db=sweepstakes_db,
+                session=session,
+            )
+        except Exception as e:
+            logging.error(f"Error updating Live Golf matching: {e}")
+            session.rollback()
+            raise HTTPException(
+                status_code=500, detail="Failed to update Live Golf matching."
+            )
+    else:
+        logging.info(
+            "Sweepstake does not have a leaderboard, skipping Live Golf matching."
+        )
 
     session.refresh(sweepstakes_db)
 
@@ -201,7 +232,7 @@ def refresh_sweepstake(
 
     logging.info(f"Refreshing sweepstake: {sweepstake.stringified_id}")
 
-    updated_sweepstake = generate_sweepstakes.refresh_sweepstake(
+    updated_sweepstake = generate_sweepstakes.refresh_sweepstake_odds(
         __bf_client, sweepstake, session
     )
 

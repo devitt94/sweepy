@@ -25,6 +25,8 @@ engine = create_engine(
 def init_db(recreate: bool = False):
     print(f"Initialising database: {DEV_MODE=} {DATABASE_URL=}")
 
+    # Needed for db refresh
+
     try:
         if recreate:
             SQLModel.metadata.drop_all(engine)
@@ -54,4 +56,5 @@ def get_session():
 
 
 if __name__ == "__main__":
-    init_db()
+    recreate_db = os.getenv("RECREATE_DB", "false").lower() == "true"
+    init_db(recreate=recreate_db)
