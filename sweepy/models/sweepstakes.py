@@ -45,7 +45,6 @@ class SweepstakesBase(BaseModel):
     method: AssignmentMethod
     updated_at: datetime.datetime
     active: bool
-    ignore_longshots: bool = False
     competition: str | None = None
     tournament_id: str | None = None
 

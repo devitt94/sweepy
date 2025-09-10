@@ -22,7 +22,8 @@ from sweepy import db_models
 
 
 def get_selections(
-    betfair_client: BetfairClient, market_id: str, ignore_longshots: bool
+    betfair_client: BetfairClient,
+    market_id: str,
 ) -> list[RunnerOdds]:
     runner_names = betfair_client.get_selection_names(market_id)
 
@@ -42,7 +43,7 @@ def get_selections(
             last_price_traded=runner_book.get("lastPriceTraded"),
         )
 
-        if ignore_longshots and not runner.available_to_lay:
+        if not runner.available_to_lay:
             continue
 
         runners.append(runner)
@@ -57,7 +58,7 @@ def generate_sweepstakes(
     db_session: sqlmodel.Session,
 ) -> db_models.Sweepstakes:
     timestamp = datetime.datetime.now(datetime.timezone.utc)
-    selections = get_selections(bf_client, request.market_id, request.ignore_longshots)
+    selections = get_selections(bf_client, request.market_id)
 
     bf_info = bf_client.get_market_info(request.market_id)
 
