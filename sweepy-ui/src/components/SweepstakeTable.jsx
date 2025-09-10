@@ -7,6 +7,18 @@ function SweepstakeTable({ data }) {
     setExpandedRow(expandedRow === index ? null : index);
   };
 
+  const stringifyScore = (score) => {
+    if (score === null || score === undefined) {
+      return "-";
+    } else if (score == 0) {
+      return "E";
+    } else if (score > 0) {
+      return `+${score}`;
+    } else {
+      return `${score}`;
+    }
+  };
+
   const sortedParticipants = [...data.participants].sort((a, b) => {
     return parseFloat(b.equity) - parseFloat(a.equity);
   });
@@ -39,6 +51,9 @@ function SweepstakeTable({ data }) {
                         <tr>
                           <th className="px-4 py-2 text-left">Runner</th>
                           <th className="px-4 py-2 text-left">Probability</th>
+                          {data.tournament_id && (
+                            <th className="px-4 py-2 text-left">Score</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -51,6 +66,11 @@ function SweepstakeTable({ data }) {
                               ).toFixed(2)}
                               %
                             </td>
+                            {data.tournament_id && (
+                              <td className="px-4 py-2">
+                                {stringifyScore(assignment.score)}
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>

@@ -31,3 +31,32 @@ def timed_cached_property(ttl_seconds: int):
         return wrapper
 
     return decorator
+
+
+def timed_cache(ttl_seconds: int):
+    """
+    Decorator to cache the result of a function for a specified time-to-live (TTL) in seconds.
+    After the TTL expires, the function will be recomputed.
+    """
+
+    if ttl_seconds <= 0 or not isinstance(ttl_seconds, int):
+        raise ValueError("TTL must be an integer greater than 0 seconds")
+
+    def decorator(func):
+        cache = {}
+        last_update = {}
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            current_time = time.time()
+            key = (args, frozenset(kwargs.items()))
+
+            if key not in cache or (current_time - last_update[key]) > ttl_seconds:
+                cache[key] = func(*args, **kwargs)
+                last_update[key] = current_time
+
+            return cache[key]
+
+        return wrapper
+
+    return decorator

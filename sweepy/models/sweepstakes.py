@@ -9,6 +9,7 @@ class RunnerOdds(BaseModel):
     provider_id: str
     name: str
     implied_probability: Decimal = condecimal(ge=0, le=1)
+    score: Decimal | None = None
 
     def __le__(self, other: "RunnerOdds") -> bool:
         return self.implied_probability <= other.implied_probability
@@ -44,8 +45,8 @@ class SweepstakesBase(BaseModel):
     method: AssignmentMethod
     updated_at: datetime.datetime
     active: bool
-    ignore_longshots: bool = False
     competition: str | None = None
+    tournament_id: str | None = None
 
 
 class Sweepstakes(SweepstakesBase):

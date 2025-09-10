@@ -6,6 +6,8 @@ import random
 import sqlmodel
 from sweepy.calculator import compute_market_probabilities
 from sweepy.integrations.betfair import BetfairClient
+from sweepy.integrations.live_golf.client import LiveGolfClient
+from sweepy.matchmaker import get_live_golf_tournament
 from sweepy.models import (
     AssignmentMethod,
     RunnerOdds,
@@ -20,7 +22,8 @@ from sweepy import db_models
 
 
 def get_selections(
-    betfair_client: BetfairClient, market_id: str, ignore_longshots: bool
+    betfair_client: BetfairClient,
+    market_id: str,
 ) -> list[RunnerOdds]:
     runner_names = betfair_client.get_selection_names(market_id)
 
@@ -40,7 +43,7 @@ def get_selections(
             last_price_traded=runner_book.get("lastPriceTraded"),
         )
 
-        if ignore_longshots and not runner.available_to_lay:
+        if not runner.available_to_lay:
             continue
 
         runners.append(runner)
@@ -49,12 +52,27 @@ def get_selections(
 
 
 def generate_sweepstakes(
-    client: BetfairClient,
+    bf_client: BetfairClient,
+    lg_client: LiveGolfClient,
     request: SweepstakesRequest,
     db_session: sqlmodel.Session,
 ) -> db_models.Sweepstakes:
     timestamp = datetime.datetime.now(datetime.timezone.utc)
-    selections = get_selections(client, request.market_id, request.ignore_longshots)
+    selections = get_selections(bf_client, request.market_id)
+
+    bf_info = bf_client.get_market_info(request.market_id)
+
+    if bf_info.is_golf:
+        try:
+            lg_tournament = get_live_golf_tournament(bf_info, lg_client)
+        except ValueError as e:
+            logging.error(f"Error getting Live Golf tournament: {e}")
+            tournament_id = None
+        else:
+            tournament_id = lg_tournament.id
+    else:
+        tournament_id = None
+
     num_selections = len(selections)
     num_participants = len(request.participant_names)
 
@@ -90,6 +108,8 @@ def generate_sweepstakes(
         active=True,
         updated_at=timestamp,
         competition=request.competition,
+        tournament_id=tournament_id,
+        start_date=bf_info.market_start_time,
     )
 
     for participant_name, selections in sweepstake_assignments.items():
@@ -108,7 +128,7 @@ def generate_sweepstakes(
         for selection in sorted_selections:
             runner = db_models.Runner(
                 name=selection.name,
-                provider_id=selection.provider_id,
+                market_provider_id=selection.provider_id,
                 participant=participant_db,
             )
             db_session.add(runner)
@@ -157,9 +177,10 @@ def convert_db_model_to_response(
             "equity": participant.latest_odds.implied_probability,
             "assignments": [
                 {
-                    "provider_id": runner.provider_id,
+                    "provider_id": runner.market_provider_id,
                     "name": runner.name,
                     "implied_probability": runner.latest_odds.implied_probability,
+                    "score": runner.score,
                 }
                 for runner in participant.runners
             ],
@@ -169,17 +190,10 @@ def convert_db_model_to_response(
 
     jsondata["participants"] = participants
     jsondata["updated_at"] = sweepstakes_db.updated_at.isoformat()
-    # logging.info(
-    #     f"Converting sweepstake {sweepstakes_db.id} to response model, {jsondata=}"
-    # )
-    logging.info(
-        f"Updated at timestamp : {sweepstakes_db.updated_at.isoformat()} {sweepstakes_db.updated_at.tzinfo}"
-    )
-
     return Sweepstakes(**jsondata)
 
 
-def refresh_sweepstake(
+def refresh_sweepstake_odds(
     client: BetfairClient,
     sweepstake_db: db_models.Sweepstakes,
     session: sqlmodel.Session,
@@ -202,19 +216,20 @@ def refresh_sweepstake(
         updated_equity = Decimal(0)
         for runner in participant.runners:
             # Find the latest runner data
-            if runner.provider_id in seen:
+            if runner.market_provider_id in seen:
                 continue
 
-            seen.add(runner.provider_id)
+            seen.add(runner.market_provider_id)
             latest_runner = next(
-                (r for r in latest_data if r.provider_id == runner.provider_id), None
+                (r for r in latest_data if r.provider_id == runner.market_provider_id),
+                None,
             )
             if latest_runner:
                 p = latest_runner.implied_probability
             else:
                 # If the runner is not found in the latest data, keep the old one but assume probability is 0
                 logging.warning(
-                    f"Runner {runner.name} with provider_id {runner.provider_id} not found in latest data."
+                    f"Runner {runner.name} with market_provider_id {runner.market_provider_id} not found in latest data."
                 )
                 p = 0.0
 
@@ -240,5 +255,56 @@ def refresh_sweepstake(
     sweepstake_db.updated_at = fetched_at
     session.add(sweepstake_db)
     session.commit()
-    logging.info(f"Refreshed sweepstake: {sweepstake_db.id}")
+    logging.info(f"Refreshed sweepstake odds: {sweepstake_db.id}")
     return sweepstake_db
+
+
+def refresh_sweepstake_leaderboard(
+    client: LiveGolfClient,
+    sweepstake_db: db_models.Sweepstakes,
+    session: sqlmodel.Session,
+):
+    """
+    Refresh the sweepstakes leaderboard by re-fetching the market data and updating the participants.
+    """
+
+    if not sweepstake_db.tournament_id:
+        raise ValueError(
+            f"Sweepstake {sweepstake_db.id} does not have a tournament ID."
+        )
+
+    leaderboard_data = client.get_leaderboard(
+        sweepstake_db.start_date.year, sweepstake_db.tournament_id
+    )
+
+    score_map = {
+        player["playerId"]: player["total"]
+        for player in leaderboard_data["leaderboardRows"]
+    }
+
+    for participant in sweepstake_db.participants:
+        for runner in participant.runners:
+            if runner.score_provider_id is None:
+                continue
+
+            # Update the score for the runner
+            if runner.score_provider_id in score_map:
+                score = score_map[runner.score_provider_id]
+                if score == "-":
+                    score = None
+                elif score == "E":
+                    score = 0
+                else:
+                    score = int(score)
+            else:
+                logging.warning(
+                    f"Runner {runner.name} with score_provider_id {runner.score_provider_id} not found in leaderboard data."
+                )
+                score = None
+
+            runner.score = score
+
+            session.add(runner)
+
+    session.commit()
+    logging.info(f"Refreshed sweepstakes leaderboard for {sweepstake_db.id}")
