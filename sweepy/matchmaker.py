@@ -1,3 +1,4 @@
+import logging
 import rapidfuzz
 from sqlmodel import Session
 
@@ -18,7 +19,6 @@ def get_live_golf_tournament(
     Finds the corresponding Live Golf tournament ID for a given Betfair market ID.
     """
 
-    print(f"Betfair Market Info: {bf_info}")
     try:
         lg_schedule = live_golf_client.get_schedule(
             season=bf_info.market_start_time.year
@@ -34,7 +34,6 @@ def get_live_golf_tournament(
             abs(date_match) <= START_DAY_DIFF_THRESHOLD
             and name_match_ratio >= NAME_MATCH_RATIO_THRESHOLD
         ):
-            print(f"Found matching tournament: {tournament.name} (ID: {tournament.id})")
             return tournament
 
     raise ValueError(
@@ -66,17 +65,14 @@ def match_runners_to_live_golf(
         if lg_player_name in unmatched_runners:
             runner = unmatched_runners.pop(lg_player_name)
             runner.score_provider_id = lg_id
-            print(
-                f"Matched Betfair runner '{runner.name}' to Live Golf player '{lg_player_name}' with ID {lg_id}."
-            )
             session.add(runner)
             runners_matched += 1
         else:
-            print(
+            logging.warning(
                 f"No Betfair runner matched for Live Golf player '{lg_player_name}' with ID {lg_id}."
             )
 
-    print(
+    logging.info(
         f"Total runners matched: {runners_matched} / {len(leaderboard['leaderboardRows'])}"
     )
     session.commit()

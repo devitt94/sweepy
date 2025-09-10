@@ -301,6 +301,8 @@ def refresh_sweepstake_leaderboard(
                 )
                 score = None
 
+            runner.score = score
+
             session.add(runner)
 
     session.commit()

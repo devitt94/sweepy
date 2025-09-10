@@ -56,10 +56,11 @@ async def lifespan(app: FastAPI):
     init_db(recreate=recreate_db)
     logging.info("Database initialized.")
 
-    logging.info("Starting the sweepstakes refresh task.")
-    asyncio.create_task(
-        tasks.refresh_all_sweepstakes_task(__bf_client, __live_golf_client)
-    )
+    logging.info("Starting the sweepstakes refresh odds task.")
+    asyncio.create_task(tasks.refresh_all_odds_task(__bf_client))
+
+    logging.info("Starting the sweepstakes refresh scores task.")
+    asyncio.create_task(tasks.refresh_all_scores_task(__live_golf_client))
 
     yield
 

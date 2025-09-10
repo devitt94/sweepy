@@ -1,6 +1,8 @@
 import requests
 from datetime import datetime
 
+from sweepy.cache import timed_cache
+
 from .models import Tournament
 
 
@@ -46,6 +48,7 @@ class LiveGolfClient:
         schedule = response.json()["schedule"]
         return list(map(parse_tournament_from_schedule_response, schedule))
 
+    @timed_cache(60)
     def get_leaderboard(self, year: int, tournament_id: str, tour_id: int = 1):
         url = f"{BASE_URL}leaderboard"
         response = requests.get(
