@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function SweepstakeTable({ data }) {
+function ParticipantTable({ data }) {
   const [expandedRow, setExpandedRow] = useState(null); // Track expanded row
 
   const toggleRow = (index) => {
@@ -86,4 +86,4 @@ function SweepstakeTable({ data }) {
   );
 }
 
-export default SweepstakeTable;
+export default ParticipantTable;
