@@ -44,16 +44,18 @@ const SweepstakeTableTabbed = ({ sweepstake, history }) => {
         >
           History
         </button>
-        <button
-          onClick={() => setActiveTab("leaderboard")}
-          className={`px-4 py-2 ${
-            activeTab === "leaderboard"
-              ? "border-b-2 border-blue-500 font-semibold"
-              : ""
-          }`}
-        >
-          Leaderboard
-        </button>
+        {sweepstake.tournament_id && (
+          <button
+            onClick={() => setActiveTab("leaderboard")}
+            className={`px-4 py-2 ${
+              activeTab === "leaderboard"
+                ? "border-b-2 border-blue-500 font-semibold"
+                : ""
+            }`}
+          >
+            Leaderboard
+          </button>
+        )}
       </div>
 
       {/* Tab Content */}
