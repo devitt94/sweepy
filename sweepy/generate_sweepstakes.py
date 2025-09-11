@@ -202,7 +202,7 @@ def refresh_sweepstake_odds(
     Refresh the sweepstake by re-fetching the market data and updating the participants.
     """
 
-    latest_data = get_selections(client, sweepstake_db.market_id, False)
+    latest_data = get_selections(client, sweepstake_db.market_id)
     fetched_at = datetime.datetime.now(datetime.timezone.utc)
     if not latest_data:
         raise MarketNotFoundException(

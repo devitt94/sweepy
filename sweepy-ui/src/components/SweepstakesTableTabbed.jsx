@@ -2,16 +2,19 @@ import React, { useState } from "react";
 
 import ParticipantTable from "./ParticipantTable";
 import LeaderboardTable from "./LeaderboardTable";
+import SweepstakeHistoryChart from "./SweepstakeHistoryChart";
 
-const SweepstakeTableTabbed = ({ data }) => {
-  const [activeTab, setActiveTab] = useState("table");
+const SweepstakeTableTabbed = ({ sweepstake, history }) => {
+  const [activeTab, setActiveTab] = useState("participant"); // Default to participant tab
 
   const renderContent = () => {
     switch (activeTab) {
       case "participant":
-        return <ParticipantTable data={data} />;
+        return <ParticipantTable data={sweepstake} />;
+      case "history":
+        return <SweepstakeHistoryChart sweepstakeHistory={history} />;
       case "leaderboard":
-        return <LeaderboardTable data={data} />;
+        return <LeaderboardTable data={sweepstake} />;
       default:
         return null;
     }
@@ -30,6 +33,16 @@ const SweepstakeTableTabbed = ({ data }) => {
           }`}
         >
           Participants
+        </button>
+        <button
+          onClick={() => setActiveTab("history")}
+          className={`px-4 py-2 ${
+            activeTab === "history"
+              ? "border-b-2 border-blue-500 font-semibold"
+              : ""
+          }`}
+        >
+          History
         </button>
         <button
           onClick={() => setActiveTab("leaderboard")}
