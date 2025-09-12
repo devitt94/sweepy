@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import SweepstakeTable from "./SweepstakeTable";
-import SweepstakeHistoryChart from "./SweepstakeHistoryChart";
+import SweepstakeTableTabbed from "./SweepstakesTableTabbed";
 
 const SECONDS_IN_MINUTE = 60;
 const SECONDS_IN_HOUR = 3600;
@@ -84,7 +83,7 @@ function SweepstakeDetail({
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 w-auto">
       <h2 className="text-lg font-semibold mb-2">
         {sweepstake.name} (ID: {sweepstake.id})
       </h2>
@@ -103,8 +102,10 @@ function SweepstakeDetail({
       <p className="text-gray-600 mb-4">
         Last refresh: {timeAgo(sweepstake.updated_at)}
       </p>
-      <SweepstakeTable data={sweepstake} />
-      <SweepstakeHistoryChart sweepstakeHistory={sweepstakeHistory} />
+      <SweepstakeTableTabbed
+        sweepstake={sweepstake}
+        history={sweepstakeHistory}
+      />
     </div>
   );
 }
