@@ -9,7 +9,7 @@ class RunnerOdds(BaseModel):
     provider_id: str
     name: str
     implied_probability: Decimal = condecimal(ge=0, le=1)
-    score: Decimal | None = None
+    score: int | None = None
 
     def __le__(self, other: "RunnerOdds") -> bool:
         return self.implied_probability <= other.implied_probability

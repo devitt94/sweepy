@@ -21,7 +21,7 @@ const SweepstakeTableTabbed = ({ sweepstake, history }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full mx-auto">
       {/* Tab Buttons */}
       <div className="flex border-b">
         <button
