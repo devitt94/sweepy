@@ -237,6 +237,9 @@ def refresh_sweepstake(
         __bf_client, sweepstake, session
     )
 
+    if updated_sweepstake.has_leaderboard:
+        generate_sweepstakes.refresh_sweepstake_leaderboard
+
     session.refresh(updated_sweepstake)
 
     resp = generate_sweepstakes.convert_db_model_to_response(updated_sweepstake)

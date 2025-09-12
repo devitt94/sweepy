@@ -263,7 +263,7 @@ def refresh_sweepstake_leaderboard(
     client: LiveGolfClient,
     sweepstake_db: db_models.Sweepstakes,
     session: sqlmodel.Session,
-):
+) -> db_models.Sweepstakes:
     """
     Refresh the sweepstakes leaderboard by re-fetching the market data and updating the participants.
     """
@@ -308,3 +308,5 @@ def refresh_sweepstake_leaderboard(
 
     session.commit()
     logging.info(f"Refreshed sweepstakes leaderboard for {sweepstake_db.id}")
+
+    return sweepstake_db
