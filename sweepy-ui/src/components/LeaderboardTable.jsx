@@ -25,8 +25,6 @@ function LeaderboardTable({ data }) {
     score: (val) => stringifyScore(val),
   };
 
-  console.log("Leaderboard data:", allAssignments);
-
   return (
     <SortableTable
       sortableColumns={columns}
