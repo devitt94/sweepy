@@ -5,6 +5,7 @@ import SweepstakeDetail from "./components/SweepstakeDetail";
 import ApiClient from "./Api";
 
 const App = () => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [displayHome, setDisplayHome] = useState(true);
   const [displayCreateForm, setDisplayCreateForm] = useState(false);
@@ -39,8 +40,18 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchEventTypes();
-    fetchAllSweepstakes();
+    setLoading(true);
+    Promise.all([apiClient.getEventTypes(), apiClient.getAllSweepstakes()])
+      .then(([eventTypes, allSweepstakes]) => {
+        setEventTypes(eventTypes);
+        setAllSweepstakes(allSweepstakes);
+      })
+      .catch((error) => {
+        setError("Failed to fetch initial data");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const handleCreateApiResponse = (responseData) => {
@@ -113,7 +124,9 @@ const App = () => {
 
   const mainComponent = () => {
     let component;
-    if (displayHome) {
+    if (loading) {
+      component = <p>Loading...</p>;
+    } else if (displayHome) {
       component = (
         <Home
           setDisplayCreateForm={setDisplayCreateForm}
