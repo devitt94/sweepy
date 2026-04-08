@@ -43,9 +43,6 @@ def get_selections(
             last_price_traded=runner_book.get("lastPriceTraded"),
         )
 
-        if not runner.available_to_lay:
-            continue
-
         runners.append(runner)
 
     return compute_market_probabilities(runners)
